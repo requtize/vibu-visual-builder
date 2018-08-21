@@ -1,0 +1,3 @@
+vibu.blockFactory = function (editor) {
+    
+}

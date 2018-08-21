@@ -1,0 +1,3 @@
+vibu.plugin('image', function () {
+
+})
