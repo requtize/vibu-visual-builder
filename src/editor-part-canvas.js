@@ -13,7 +13,7 @@ vibu.editorPartCanvas = function (id) {
     this.init = function () {
         let self = this;
 
-        this.node = vibuJquery('body');
+        this.node = $('body');
 
         this.eventDispatcher = new vibu.eventDispatcher;
 
@@ -25,7 +25,9 @@ vibu.editorPartCanvas = function (id) {
         this.parser = new vibu.parser(this);
         this.editorText = new vibu.editorText(this);
 
-        this.heightWatcher = new vibu.canvasHeightWatcher(this.node);
+        let body = $(editor.getNode().find('.vibu-canvas iframe').get(0).contentWindow.body)
+
+        this.heightWatcher = new vibu.canvasHeightWatcher(body);
         this.heightWatcher.onChange(function (height) {
             self.messenger.send('root', 'canvas-height-change', {
                 height: height
@@ -44,7 +46,7 @@ vibu.editorPartCanvas = function (id) {
                 self.node.addClass('vibu-prevent-scroll');
             }
 
-            let head = vibuJquery('head');
+            let head = $('head');
 
             for(let i = 0; i < self.options.contentCss.length; i++)
                 head.append('<link rel="stylesheet" type="text/css" href="' + self.options.contentCss[i] + '" />');

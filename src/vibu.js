@@ -16,8 +16,6 @@ const vibu = {
         }
     },
     create: function (selector, options) {
-        vibu.jqueryNoConflict();
-
         let editor = new vibu.editor(selector, options);
 
         editor.init();
@@ -84,12 +82,6 @@ const vibu = {
         outer.parentNode.removeChild(outer);
 
         return widthNoScroll - widthWithScroll;
-    },
-    jqueryNoConflict: function () {
-        if(! window.vibuJquery)
-        {
-            window.vibuJquery = jQuery;
-        }
     }
 };
 

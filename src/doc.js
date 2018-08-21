@@ -19,7 +19,7 @@ vibu.doc = function (canvas) {
             width: element.outerWidth(),
             height: element.outerHeight(),
             position: element.css('position'),
-            scrollTop: vibuJquery(window).scrollTop()
+            scrollTop: $(window).scrollTop()
         };
     };
 }

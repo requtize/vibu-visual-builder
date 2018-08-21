@@ -4,7 +4,7 @@ vibu.editorRenderer = function () {
         let base = vibu.getVibuBase();
         let options = editor.options;
 
-        let container = vibuJquery(vibu.editorRenderer.container);
+        let container = $(vibu.editorRenderer.container);
 
         if(options.blocksActive === false)
             container.find('.vibu-sidebar-blocks').remove();
@@ -40,13 +40,18 @@ vibu.editorRenderer = function () {
             }
         }
 
-        container.find('iframe').each(function () {
-            vibuJquery(this).attr('src', base + '/' + vibuJquery(this).attr('src') + '&vibu-id=' + id);
-        });
+        /*container.find('iframe').each(function () {
+            $(this).attr('src', base + '/' + $(this).attr('src'));
+        });*/
 
         editor.getNode().append(container);
 
-        console.log(editor.getNode().find('.vibu-canvas iframe').get(0).contentWindow.document);
+        /*let iframe = container.find('iframe');
+
+        iframe.ready(function() {
+            console.log(iframe.contents().find('body'));
+            iframe.contents().find('body').html(editor.options.contents);
+        });*/
     };
 };
 
@@ -64,7 +69,7 @@ vibu.editorRenderer.container = '<div class="vibu-container">'
         + '</div>'
         + '<div class="vibu-sidebar vibu-sidebar-blocks">'
             + '<div class="vibu-sidebar-inner">'
-                + '<iframe src="iframe.sidebar-blocks.html?vibu-part=sidebar-blocks" class="vibu-iframe"></iframe>'
+                + 'Blocks'
             + '</div>'
         + '</div>'
         + '<div class="vibu-canvas">'
@@ -73,12 +78,26 @@ vibu.editorRenderer.container = '<div class="vibu-container">'
                     + '<div class="vibu-node-name">h2</div>'
                 + '</div>'
                 + '<div class="vibu-element-boundaries vibu-element-boundaries-hover vibu-hidden"></div>'
-                + '<iframe src="iframe.canvas.html?vibu-part=canvas" class="vibu-iframe"></iframe>'
+                + '<iframe class="vibu-iframe"></iframe>'
             + '</div>'
         + '</div>'
         + '<div class="vibu-sidebar vibu-sidebar-styles">'
             + '<div class="vibu-sidebar-inner">'
-                + '<iframe src="iframe.sidebar-styles.html?vibu-part=sidebar-styles" class="vibu-iframe"></iframe>'
+                + '<div class="ui form">'
+                    + '<div class="ui stacked segment">'
+                        + '<div class="field" vibu-selectable-control="core/image">'
+                            + '<label>Obrazek</label>'
+                            + '<div class="fields">'
+                                + '<div class="ui fluid action input">'
+                                    + '<input type="text" placeholder="Obrazek...">'
+                                    + '<button class="ui icon button">'
+                                        + '<i class="folder open icon"></i>'
+                                    + '</button>'
+                                + '</div>'
+                            + '</div>'
+                        + '</div>'
+                    + '</div>'
+                + '</div>'
             + '</div>'
         + '</div>'
     + '</div>'

@@ -59,7 +59,7 @@ vibu.editorText.Editor = function (element) {
     };
 
     this.detectEmptyAndFixHeight = function () {
-        if(vibuJquery.trim(this.element.html()) == '')
+        if($.trim(this.element.html()) == '')
             this.element.attr('vibu-editor-text-empty', true);
         else
             this.element.removeAttr('vibu-editor-text-empty');

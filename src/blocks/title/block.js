@@ -27,3 +27,9 @@ vibu.block('custom/block1', function (url) {
         }
     };
 });
+
+vibu.styleControl('core/image', function (url) {
+    return {
+        template: url + '/html/control.html'
+    };
+});

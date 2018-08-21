@@ -42,7 +42,7 @@ vibu.parser = function (editor) {
             node.find('[' + this.tags[i].name + ']').each(function () {
                 self.editor.trigger('parser.tag', {
                     tag    : self.tags[i],
-                    element: vibuJquery(this)
+                    element: $(this)
                 });
             });
         }

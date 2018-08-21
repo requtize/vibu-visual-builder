@@ -1,19 +1,24 @@
-vibu.selectableCanvas = function (canvas) {
+vibu.selectable = function (canvas) {
     this.canvas = canvas;
 
     this.selectedElement = null;
     this.hoveredElement = null;
 
+    this.selectedElementId = null;
+    this.hoveredElementId  = null;
+    this.selectedLayer = null;
+    this.hoveredLayer  = null;
+
     this.init = function () {
         let self = this;
 
         self.canvas.getNode().find('[vibu-selectable]').each(function () {
-            self.addElementId(vibuJquery(this));
-            self.bindElementHoverEvents(vibuJquery(this));
-            self.bindElementClickEvents(vibuJquery(this));
+            self.addElementId($(this));
+            self.bindElementHoverEvents($(this));
+            self.bindElementClickEvents($(this));
         });
 
-        vibuJquery(window).on('scroll resize', function () {
+        $(window).on('scroll resize', function () {
             if(self.selectedElement)
             {
                 self.canvas.eventDispatcher.trigger('selectable.selected.update-boundaries', {
@@ -28,7 +33,7 @@ vibu.selectableCanvas = function (canvas) {
             }
         });
 
-        vibuJquery('body').click(function () {
+        $('body').click(function () {
             self.canvas.eventDispatcher.trigger('selectable.selected.none', {
                 element: self.selectedElement
             });
@@ -99,6 +104,83 @@ vibu.selectableCanvas = function (canvas) {
 
             self.selectedElement = null;
         });
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /*this.selectedLayer = this.editor.getNode().find('.vibu-element-boundaries-active');
+        this.hoveredLayer  = this.editor.getNode().find('.vibu-element-boundaries-hover');
+
+        this.editor.messenger.receive('selectable.hovered.on', function (data) {
+            self.hoveredElementId = data.elementId;
+            self.hoveredLayer
+                .removeClass('vibu-hidden')
+                .attr('vibu-element-id', data.elementId)
+                .css({
+                    width : data.boundaries.width,
+                    height: data.boundaries.height,
+                    left  : data.boundaries.left,
+                    top   : data.boundaries.top - data.boundaries.scrollTop
+                });
+        });
+
+        this.editor.messenger.receive('selectable.hovered.update-boundaries', function (data) {
+            self.hoveredLayer
+                .css({
+                    width : data.boundaries.width,
+                    height: data.boundaries.height,
+                    left  : data.boundaries.left,
+                    top   : data.boundaries.top - data.boundaries.scrollTop
+                });
+        });
+
+        this.editor.messenger.receive('selectable.hovered.out', function (data) {
+            self.hoveredElementId = null;
+            self.hoveredLayer
+                .addClass('vibu-hidden')
+                .attr('vibu-element-id', null);
+        });
+
+
+
+        this.editor.messenger.receive('selectable.selected.new', function (data) {
+            self.selectedElementId = data.elementId;
+            self.selectedLayer.removeClass('vibu-hidden');
+
+            self.selectedLayer.css({
+                width : data.boundaries.width,
+                height: data.boundaries.height,
+                left  : data.boundaries.left,
+                top   : data.boundaries.top - data.boundaries.scrollTop
+            });
+
+            self.selectedLayer.find('.vibu-node-name').text(data.tagName);
+        });
+
+        this.editor.messenger.receive('selectable.selected.update-boundaries', function (data) {
+            self.selectedLayer.css({
+                width : data.boundaries.width,
+                height: data.boundaries.height,
+                left  : data.boundaries.left,
+                top   : data.boundaries.top - data.boundaries.scrollTop
+            });
+        });
+
+        this.editor.messenger.receive('selectable.selected.none', function (data) {
+            self.selectedElementId = null;
+            self.selectedLayer
+                .addClass('vibu-hidden')
+                .attr('vibu-element-id', null);
+        });*/
     };
 
     this.addElementId = function (element) {

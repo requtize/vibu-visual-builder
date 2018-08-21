@@ -4,7 +4,6 @@ vibu.editor = function (selector, options) {
     this.eventDispatcher = null;
     this.options   = options;
     this.renderer  = null;
-    this.messenger = null;
     this.messengerRoot = null;
     this.resizer = null;
     this.selectable = null;
@@ -13,19 +12,16 @@ vibu.editor = function (selector, options) {
         let self = this;
 
         this.id = vibu.generateId();
-        this.options = vibuJquery.extend({}, vibu.editor.defaults, this.options);
-        this.node = vibuJquery(selector);
+        this.options = $.extend({}, vibu.editor.defaults, this.options);
+        this.node = $(selector);
         this.eventDispatcher = new vibu.eventDispatcher;
 
-        this.renderer = new vibu.editorRenderer();
+        /*this.messenger = new vibu.messenger('root', this.getId(), this.eventDispatcher);*/
+        this.renderer   = new vibu.editorRenderer();
+        this.resizer    = new vibu.resizer(this);
+        this.selectable = new vibu.selectable(this);
 
-        this.messenger = new vibu.messenger('root', this.getId(), this.eventDispatcher);
-
-        this.resizer = new vibu.resizer(this);
-
-        this.selectable = new vibu.selectablePreview(this);
-
-        this.messenger.receive('canvas-height-change', function (data) {
+        /*this.messenger.receive('canvas-height-change', function (data) {
             self.eventDispatcher.trigger('canvas-height-change', data);
         });
 
@@ -44,14 +40,15 @@ vibu.editor = function (selector, options) {
             });
         });
 
-        this.messenger.init();
+        this.messenger.init();*/
         this.renderer.render(this);
+        return;
         this.selectable.init();
         this.resizer.init();
 
-        this.messenger.registerMessagesWindow('canvas', this.node.find('.vibu-canvas iframe'));
+        /*this.messenger.registerMessagesWindow('canvas', this.node.find('.vibu-canvas iframe'));
         this.messenger.registerMessagesWindow('styles', this.node.find('.vibu-sidebar-styles iframe'));
-        this.messenger.registerMessagesWindow('blocks', this.node.find('.vibu-sidebar-blocks iframe'));
+        this.messenger.registerMessagesWindow('blocks', this.node.find('.vibu-sidebar-blocks iframe'));*/
 
         this.options.setup(this);
 
