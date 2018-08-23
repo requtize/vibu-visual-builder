@@ -7,15 +7,19 @@
 
         <title></title>
 
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+
         <style>
             .vibu-container-fixed {position:fixed;left:0;top:0;right:0;bottom:0;z-index:100}
             .vibu-container-inplace {position:relative;z-index:100}
             .vibu-visual-builder,
             .vibu-visual-builder *,
             .vibu-visual-builder *:after,
-            .vibu-visual-builder *:before {box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;font-size:12px;font-family:Arial,Tahoma,Verdana;color:#000;line-height:1.3;}
-            .vibu-visual-builder,
-            .vibu-visual-builder * {font-size:14px;line-height:1.2;font-family:Arial,Tahoma,Verdana;color:#000;}
+            .vibu-visual-builder *:before {box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;}
+            .vibu-visual-builder {font-size:14px;line-height:1.2;font-family:Arial,Tahoma,Verdana;color:#000;}
+            .vibu-visual-builder a,
+            .vibu-visual-builder a:focus,
+            .vibu-visual-builder a:hover {text-decoration:none}
             .vibu-visual-builder .vibu-sidebar-inner {position:absolute;bottom:0;top:0;left:0;right:0;}
             .vibu-visual-builder .vibu-sidebar {position:absolute;z-index:10;width:280px;top:0;bottom:0;}
             .vibu-visual-builder .vibu-sidebar-blocks {left:0;border-right:1px solid #ddd;}
@@ -30,8 +34,8 @@
             .vibu-visual-builder .vibu-iframe {position:absolute;bottom:0;top:0;left:0;right:0;border:none;display:block;padding:0;margin:0;width:100%;height:100%;}
             .vibu-visual-builder .vibu-topbar {position:absolute;top:0;left:0;right:0;height:37px;border-bottom:1px solid #ddd;line-height:1}
             .vibu-visual-builder .vibu-fake-device-selector {text-align:center;}
-            .vibu-visual-builder .vibu-btn {display:inline-block;padding:0 10px;margin:0;border:none;background-color:#fff;color:#000;height:36px;line-height:36px;text-align:center;transition:.12s all;}
-            .vibu-visual-builder .vibu-btn:hover {cursor:pointer;background-color:#ddd}
+            .vibu-visual-builder .vibu-fake-device-selector .vibu-btn {padding:0 10px;border:none;background-color:#fff;color:#000;height:36px;line-height:36px;text-align:center;transition:.12s all;}
+            .vibu-visual-builder .vibu-fake-device-selector .vibu-btn:hover {background-color:#ddd}
             .vibu-visual-builder .vibu-btn.vibu-btn-active {background-color:#0088cc;color:#fff;}
             .vibu-visual-builder .vibu-btn-device {width:36px;background-position:center center;background-repeat:no-repeat;background-size:70%;}
             .vibu-visual-builder .vibu-btn-device.vibu-btn-active {background-color:#fff;position:relative;background-color:#f1f1f1}
@@ -50,25 +54,214 @@
 
             .vibu-visual-builder .vibu-element-boundaries {display:block;z-index:100;position:absolute;left:100px;top:100px;border:1px solid #0088cc;border-radius:0 3px 3px 3px;pointer-events:none;width:200px;height:100px;box-shadow:0 0 5px rgba(0,136,204,.5)}
             .vibu-visual-builder .vibu-element-boundaries:before {content:"";display:block;position:absolute;left:0;top:0;right:0;bottom:0;background-color:rgba(0,136,204,.08);}
-            .vibu-visual-builder .vibu-element-boundaries .vibu-node-name {position:absolute;left:-1px;top:-20px;height:20px;padding:0 10px;line-height:20px;color:#fff;background-color:#0088cc;border-radius:3px 3px 0 0;}
+            .vibu-visual-builder .vibu-element-boundaries .vibu-node-name {position:absolute;left:-1px;top:-20px;height:20px;padding:0 10px;line-height:20px;color:#fff;background-color:#0088cc;border-radius:3px 3px 0 0;text-transform:lowercase;}
             .vibu-visual-builder .vibu-element-boundaries.vibu-element-boundaries-hover {opacity:.7;box-shadow:none;border-radius:3px;}
             .vibu-visual-builder .vibu-element-boundaries.vibu-element-boundaries-hover:before {background-color:transparent;}
             .vibu-visual-builder .vibu-element-boundaries.vibu-element-boundaries-hover:hover {cursor:pointer;}
             .vibu-visual-builder .vibu-element-boundaries.vibu-element-focused:before {background-color:transparent;}
 
             .vibu-editor-placement-inline {max-width:100%;width:800px;margin:100px auto;}
+
+
+
+            .vibu-controls-group {padding:10px;}
+            .vibu-label {margin-bottom:5px;font-size:12px;}
+
+            .vibu-btn,
+            .vibu-form-control {margin: 0;font-family: inherit;font-size: inherit;line-height: inherit;overflow: visible;}
+
+            .vibu-btn {display: inline-block;
+                font-weight: 400;
+                text-align: center;
+                white-space: nowrap;
+                vertical-align: middle;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                border: 1px solid transparent;
+                padding: 9px 13px;
+                font-size: 13px;
+                line-height: 1;
+                border-radius: 3px;
+                transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+                color: #fff;
+                background-color: #0088cc;
+                border-color: #0088cc;}
+
+            .vibu-btn:not(:disabled):not(.disabled) {
+                cursor: pointer;
+            }
+            .vibu-btn:hover {
+                color: #fff;
+                background-color: #0069d9;
+                border-color: #0062cc;
+            }
+            .vibu-btn-primary.vibu-focus, .vibu-btn-primary:focus {
+                box-shadow: 0 0 0 0.2rem rgba(0,123,255,.5);
+            }
+            .vibu-btn.vibu-focus, .vibu-btn:focus {
+                outline: 0;
+                box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+            }
+            .vibu-btn:not(:disabled):not(.vibu-disabled).vibu-active,
+            .vibu-btn:not(:disabled):not(.vibu-disabled):active,
+            .vibu-show>.vibu-btn.vibu-dropdown-toggle {
+                color: #fff;
+                background-color: #0062cc;
+                border-color: #005cbf;
+            }
+
+            .vibu-input-group-append .vibu-btn {
+                position: relative;
+                z-index: 2;
+            }
+            .vibu-input-group {
+                position: relative;
+                display: -ms-flexbox;
+                display: flex;
+                -ms-flex-wrap: wrap;
+                flex-wrap: wrap;
+                -ms-flex-align: stretch;
+                align-items: stretch;
+                width: 100%;}
+            .vibu-form-group {margin-bottom:10px;position: relative;display: -ms-flexbox;display: flex;-ms-flex-wrap: wrap;flex-wrap: wrap;-ms-flex-align: stretch;align-items: stretch;width: 100%;}
+            .vibu-form-control {display: block;
+                width: 100%;
+                height: calc(1.9rem + 2px);
+                padding: 0 8px;
+                font-size: 13px;
+                line-height: 1;
+                color: #495057;
+                background-color: #fff;
+                background-clip: padding-box;
+                border: 1px solid #ced4da;
+                border-radius: .25rem;
+                transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;}
+            .vibu-input-group>.vibu-custom-select:not(:first-child),
+            .vibu-input-group>.vibu-form-control:not(:first-child) {
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+            }
+            .vibu-input-group>.vibu-custom-file,
+            .vibu-input-group>.vibu-custom-select,
+            .vibu-input-group>.vibu-form-control {
+                position: relative;
+                -ms-flex: 1 1 auto;
+                flex: 1 1 auto;
+                width: 1%;
+                margin-bottom: 0;
+            }
+            .vibu-input-group-append {    display: -ms-flexbox;
+                display: flex;}
+            .vibu-input-group-append {margin-left: -1px;}
+
+
+            .vibu-input-group>.vibu-input-group-append>.vibu-btn,
+            .vibu-input-group>.vibu-input-group-append>.vibu-input-group-text {
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+            }
+            .vibu-input-group>.vibu-input-group-append:last-child>.vibu-btn:not(:last-child):not(.vibu-dropdown-toggle),
+            .vibu-input-group>.vibu-input-group-append:last-child>.vibu-input-group-text:not(:last-child),
+            .vibu-input-group>.vibu-input-group-append:not(:last-child)>.vibu-btn,
+            .vibu-input-group>.vibu-input-group-append:not(:last-child)>.vibu-input-group-text {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+
+            .vibu-input-group>.vibu-custom-select:not(:last-child),
+            .vibu-input-group>.vibu-form-control:not(:last-child) {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+
+            .vibu-dropdown-toggle::after {
+                display: inline-block;
+                width: 0;
+                height: 0;
+                margin-left: .255em;
+                vertical-align: .255em;
+                content: "";
+                border-top: .3em solid #fff;
+                border-right: .3em solid transparent;
+                border-bottom: 0;
+                border-left: .3em solid transparent;
+            }
+
+            .vibu-dropdown-menu[x-placement^=bottom],
+            .vibu-dropdown-menu[x-placement^=left],
+            .vibu-dropdown-menu[x-placement^=right],
+            .vibu-dropdown-menu[x-placement^=top] {
+                right: auto;
+                bottom: auto;
+            }
+            .vibu-dropdown-menu {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                z-index: 1000;
+                display: none;
+                float: left;
+                min-width: 10rem;
+                padding: .5rem 0;
+                margin: .125rem 0 0;
+                font-size: 13px;
+                color: #212529;
+                text-align: left;
+                list-style: none;
+                background-color: #fff;
+                background-clip: padding-box;
+                border: 1px solid rgba(0,0,0,.15);
+                border-radius: .25rem;
+            }
+
+            .vibu-dropdown-menu.vibu-show {
+                display: block;
+            }
+            .vibu-dropdown-item {
+                display: block;
+                width: 100%;
+                padding: 7px 20px;
+                clear: both;
+                font-weight: 400;
+                color: #212529;
+                text-align: inherit;
+                white-space: nowrap;
+                background-color: transparent;
+                border: 0;
+            }
+            .vibu-dropdown-item:focus,
+            .vibu-dropdown-item:hover {
+                color: #16181b;
+                text-decoration: none;
+                background-color: #f1f1f1;
+            }
+            .vibu-dropdown-item.active,
+            .vibu-dropdown-item:active {
+                color: #fff;
+                text-decoration: none;
+                background-color: #0088cc;
+            }
+            .vibu-dropdown-divider {
+                height: 0;
+                margin: .5rem 0;
+                overflow: hidden;
+                border-top: 1px solid #e9ecef;
+            }
         </style>
         <script src="assets/jquery/jquery.min.js"></script>
         <script src="../src/vibu.js"></script>
         <script src="../src/event-dispatcher.js"></script>
         <script src="../src/editor.js"></script>
         <script src="../src/editor-renderer.js"></script>
-        <script src="../src/messenger.js"></script>
         <script src="../src/resizer.js"></script>
         <script src="../src/selectable.js"></script>
+        <script src="../src/canvas-height-watcher.js"></script>
+        <script src="../src/doc.js"></script>
+        <script src="../src/editor-text.js"></script>
+        <script src="../src/parser.js"></script>
         <script>
-            vibu.vibuBase = 'http://localhost/vibu-visual-builder/dist';
-
             $(function () {
                 let contents = {
                     fullpage: {
@@ -80,6 +273,7 @@
                             'https://bootstrap-themes.github.io/application/assets/css/application.css',
                         ],
                         contentJs: [
+                            'https://code.jquery.com/jquery-3.3.1.min.js',
                             'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js',
                             'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js',
                             'https://bootstrap-themes.github.io/application/assets/js/chart.js',

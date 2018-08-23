@@ -1,11 +1,6 @@
 const vibu = {
     activeEditor: null,
     editors: [],
-
-    vibuBase: '',
-    init: function () {
-        this.vibuBase = document.currentScript.src.replace('/vibu.js', '');
-    },
     getEditor: function (id) {
         for(let i = 0; i < this.editors; i++)
         {
@@ -56,9 +51,6 @@ const vibu = {
     generateId: function () {
         return 'vibu-' + Math.random().toString(36).substr(2, 9);
     },
-    getVibuBase: function () {
-        return this.vibuBase;
-    },
     /**
      * Functions taken from: https://stackoverflow.com/a/13382873/4583637
      */
@@ -84,5 +76,3 @@ const vibu = {
         return widthNoScroll - widthWithScroll;
     }
 };
-
-vibu.init();

@@ -1,12 +1,12 @@
-vibu.editorText = function (canvas) {
-    this.canvas = canvas;
+vibu.editorText = function (editor) {
+    this.editor = editor;
 
     this.editors = [];
 
     this.init = function () {
         let self = this;
 
-        this.canvas.on('parser.tag', function (data) {
+        this.editor.on('parser.tag', function (data) {
             if(data.tag.name == 'vibu-editable-text')
             {
                 self.createEditor(data.element);
@@ -21,8 +21,8 @@ vibu.editorText = function (canvas) {
         editor.create();
 
         editor.eventDispatcher.on('element.update', function () {
-            self.canvas.selectable.updateActiveElement();
-            self.canvas.selectable.updateHoveredElement();
+            self.editor.selectable.updateActiveElement();
+            self.editor.selectable.updateHoveredElement();
         });
 
         this.editors.push(editor);
@@ -36,20 +36,21 @@ vibu.editorText.Editor = function (element) {
 
     this.create = function () {
         let self = this;
+        let elementDocument = this.element.get(0).ownerDocument;
 
         this.eventDispatcher = new vibu.eventDispatcher;
 
         this.element.attr('contenteditable', true).keypress(function(e) {
             if(e.which == 13)
             {
-                document.execCommand('insertHTML', false, '<br />');
-                event.preventDefault();
+                elementDocument.execCommand('insertHTML', false, '<br />');
+                e.preventDefault();
             }
         }).keydown(function (e) {
             // Prevent tab (keyCode = 9) key press
             // (skip to next editable element/editor).
-            if(event.keyCode === 9)
-                event.preventDefault();
+            if(e.keyCode === 9)
+                e.preventDefault();
 
             self.detectEmptyAndFixHeight();
         }).keyup(function () {

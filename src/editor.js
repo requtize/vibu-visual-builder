@@ -7,6 +7,10 @@ vibu.editor = function (selector, options) {
     this.messengerRoot = null;
     this.resizer = null;
     this.selectable = null;
+    this.heightWatcher = null;
+    this.doc = null;
+    this.parser = null;
+    this.editorText = null;
 
     this.init = function () {
         let self = this;
@@ -16,43 +20,31 @@ vibu.editor = function (selector, options) {
         this.node = $(selector);
         this.eventDispatcher = new vibu.eventDispatcher;
 
-        /*this.messenger = new vibu.messenger('root', this.getId(), this.eventDispatcher);*/
         this.renderer   = new vibu.editorRenderer();
         this.resizer    = new vibu.resizer(this);
         this.selectable = new vibu.selectable(this);
+        this.doc        = new vibu.doc(this);
+        this.parser     = new vibu.parser(this);
+        this.editorText = new vibu.editorText(this);
 
-        /*this.messenger.receive('canvas-height-change', function (data) {
-            self.eventDispatcher.trigger('canvas-height-change', data);
-        });
+        this.editorText.init();
+        this.renderer.render(this);
 
-        this.messenger.receive('canvas.ready', function () {
-            self.messenger.send('canvas', 'editor.options', {
-                viewMode     : self.options.viewMode,
-                inplaceHeight: self.options.inplaceHeight,
-                blocksActive : self.options.blocksActive,
-                stylesActive : self.options.stylesActive,
-                responsive   : self.options.responsive,
-                contents     : self.options.contents,
-                contentCss   : self.options.contentCss,
-                contentJs    : self.options.contentJs,
-                blocks       : self.options.blocks,
-                plugins      : self.options.plugins
+        this.heightWatcher = new vibu.canvasHeightWatcher(this.node.find('iframe'));
+        this.heightWatcher.onChange(function (height) {
+            self.eventDispatcher.trigger('canvas-height-change', {
+                height: height
             });
         });
 
-        this.messenger.init();*/
-        this.renderer.render(this);
-        return;
-        this.selectable.init();
-        this.resizer.init();
-
-        /*this.messenger.registerMessagesWindow('canvas', this.node.find('.vibu-canvas iframe'));
-        this.messenger.registerMessagesWindow('styles', this.node.find('.vibu-sidebar-styles iframe'));
-        this.messenger.registerMessagesWindow('blocks', this.node.find('.vibu-sidebar-blocks iframe'));*/
-
         this.options.setup(this);
 
-        this.trigger('editor.created');
+        this.on('content-ready', function () {
+            self.selectable.init();
+            self.resizer.init();
+            self.parser.parse(self.doc.getCanvasContent());
+            self.trigger('editor.created');
+        });
 
         /*window.onbeforeunload = function(e) {
             var dialogText = 'Dialog text here';

@@ -1,7 +1,6 @@
 vibu.editorRenderer = function () {
     this.render = function (editor) {
         let id   = editor.getId();
-        let base = vibu.getVibuBase();
         let options = editor.options;
 
         let container = $(vibu.editorRenderer.container);
@@ -40,18 +39,37 @@ vibu.editorRenderer = function () {
             }
         }
 
-        /*container.find('iframe').each(function () {
-            $(this).attr('src', base + '/' + $(this).attr('src'));
-        });*/
-
         editor.getNode().append(container);
 
-        /*let iframe = container.find('iframe');
+        let iframe = editor.getNode().find('iframe');
 
         iframe.ready(function() {
-            console.log(iframe.contents().find('body'));
-            iframe.contents().find('body').html(editor.options.contents);
-        });*/
+            let body = iframe.contents().find('body');
+            let head = iframe.contents().find('head');
+
+            for(let i = 0; i < editor.options.contentCss.length; i++)
+                head.append('<link rel="stylesheet" type="text/css" href="' + editor.options.contentCss[i] + '" />');
+            for(let i = 0; i < editor.options.contentJs.length; i++)
+                head.append('<script src="' + editor.options.contentJs[i] + '"></script>');
+
+            if(editor.options.viewMode == 'inplace' && editor.options.inplaceHeight == 'auto')
+                body.addClass('vibu-prevent-scroll');
+
+            head.append('<meta charset="utf-8">');
+            head.append('<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">');
+            head.append('<style>body:hover,\
+            body *:hover {cursor:default !important;}\
+            body *[vibu-selectable]:hover,\
+            body *[vibu-selectable] *:hover {cursor:pointer !important;}\
+            body *[vibu-editable-text]:hover,\
+            body *[vibu-editable-text] *:hover {cursor:text !important;}\
+            .vibu-prevent-scroll {overflow:hidden !important;}\
+            [vibu-editor-text-empty] {min-height:12px;min-width:20px;max-width:100%;display:inline-block;}</style>');
+
+            body.html(editor.options.contents);
+
+            editor.trigger('content-ready');
+        });
     };
 };
 
@@ -83,16 +101,57 @@ vibu.editorRenderer.container = '<div class="vibu-container">'
         + '</div>'
         + '<div class="vibu-sidebar vibu-sidebar-styles">'
             + '<div class="vibu-sidebar-inner">'
-                + '<div class="ui form">'
-                    + '<div class="ui stacked segment">'
-                        + '<div class="field" vibu-selectable-control="core/image">'
-                            + '<label>Obrazek</label>'
-                            + '<div class="fields">'
-                                + '<div class="ui fluid action input">'
-                                    + '<input type="text" placeholder="Obrazek...">'
-                                    + '<button class="ui icon button">'
-                                        + '<i class="folder open icon"></i>'
-                                    + '</button>'
+                + '<div class="vibu-controls-group">'
+                    + '<div class="vibu-form-group">'
+                        + '<label class="vibu-label">Klasa HTML</label>'
+                        + '<input class="vibu-form-control" name="" />'
+                    + '</div>'
+                    /*+ '<div class="vibu-form-group">'
+                        + '<label class="vibu-label">Zdjęcie</label>'
+                        + '<div class="vibu-input-group">'
+                            + '<input type="text" class="vibu-form-control" />'
+                            + '<div class="vibu-input-group-append">'
+                                + '<button class="vibu-btn" type="button">Button</button>'
+                            + '</div>'
+                        + '</div>'
+                    + '</div>'*/
+                    + '<div class="vibu-form-group">'
+                        + '<label class="vibu-label">Zdjęcie</label>'
+                        + '<div class="vibu-input-group">'
+                            + '<input type="text" class="vibu-form-control" />'
+                            + '<div class="vibu-input-group-append">'
+                                + '<button class="vibu-btn vibu-btn-icon-only" type="button"><i class="far fa-folder-open"></i></button>'
+                            + '</div>'
+                        + '</div>'
+                    + '</div>'
+                    + '<div class="vibu-form-group">'
+                        + '<label class="vibu-label">Tag HTML</label>'
+                        + '<select class="vibu-form-control">'
+                            + '<option>H1</option>'
+                            + '<option>H2</option>'
+                            + '<option>H3</option>'
+                            + '<option>H4</option>'
+                            + '<option>DIV</option>'
+                            + '<option>P</option>'
+                            + '<option>BLOCKQUOTE</option>'
+                            + '<option>PRE</option>'
+                        + '</select>'
+                    + '</div>'
+                    + '<div class="vibu-form-group">'
+                        + '<button class="vibu-btn vibu-btn-icon-only" type="button"><i class="far fa-folder-open"></i> Jakaś akcja</button>'
+                    + '</div>'
+                    + '<div class="vibu-form-group">'
+                        + '<label class="vibu-label">Label text</label>'
+                        + '<div class="vibu-input-group">'
+                            + '<input type="text" class="vibu-form-control" />'
+                            + '<div class="vibu-input-group-append">'
+                                + '<button class="vibu-btn vibu-dropdown-toggle" type="button">Dropdown</button>'
+                                + '<div class="vibu-dropdown-menu">'
+                                    + '<a class="vibu-dropdown-item" href="#">Action</a>'
+                                    + '<a class="vibu-dropdown-item" href="#">Another action</a>'
+                                    + '<a class="vibu-dropdown-item" href="#">Something else here</a>'
+                                    + '<div role="separator" class="vibu-dropdown-divider"></div>'
+                                    + '<a class="vibu-dropdown-item" href="#">Separated link</a>'
                                 + '</div>'
                             + '</div>'
                         + '</div>'
