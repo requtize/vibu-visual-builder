@@ -12,6 +12,7 @@ vibu.editor = function (selector, options) {
     this.parser = null;
     this.editorText = null;
     this.ui = null;
+    this.styles = null;
 
     this.init = function () {
         let self = this;
@@ -28,6 +29,7 @@ vibu.editor = function (selector, options) {
         this.parser     = new vibu.parser(this);
         this.editorText = new vibu.editorText(this);
         this.ui         = new vibu.ui(this);
+        this.styles     = new vibu.styles(this);
 
         this.editorText.init();
         this.renderer.render(this);
@@ -42,9 +44,10 @@ vibu.editor = function (selector, options) {
         this.options.setup(this);
 
         this.on('content-ready', function () {
-            self.ui.init();
+            self.styles.init();
             self.selectable.init();
             self.resizer.init();
+            self.ui.init();
             self.parser.parse(self.doc.getCanvasContent());
             self.trigger('editor.created');
         });

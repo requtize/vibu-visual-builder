@@ -2,7 +2,7 @@ vibu.doc = function (editor) {
     this.editor = editor;
 
     this.findAllVibuElements = function () {
-        return this.editor.node.find('[data-vibu]');
+        return this.editor.getNode().find('[data-vibu]');
     };
 
     this.findSelectableElement = function (element) {
@@ -35,5 +35,9 @@ vibu.doc = function (editor) {
 
     this.getCanvasContent = function () {
         return this.getCanvas().contents();
+    };
+
+    this.getStyles = function () {
+        return this.editor.getNode().find('.vibu-sidebar-styles .vibu-sidebar-inner');
     };
 }

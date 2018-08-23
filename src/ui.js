@@ -3,6 +3,8 @@ vibu.ui = function (editor) {
 
     this.init = function () {
         this._dropdowns(this.editor.getNode());
+        this._modals(this.editor.getNode());
+        this._checkboxes(this.editor.getNode());
     };
 
     this._dropdowns = function (node) {
@@ -23,5 +25,13 @@ vibu.ui = function (editor) {
         $('body').on('click', function () {
             node.find('.vibu-dropdown-menu.vibu-show').removeClass('vibu-show');
         });
+    };
+
+    this._modals = function (node) {
+
+    };
+
+    this._checkboxes = function (node) {
+
     };
 };
