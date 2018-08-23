@@ -214,10 +214,19 @@
                 background-clip: padding-box;
                 border: 1px solid rgba(0,0,0,.15);
                 border-radius: .25rem;
+                animation-name: zoomIn;
+                animation-fill-mode: both;
+                animation-duration: .3s;
             }
 
             .vibu-dropdown-menu.vibu-show {
                 display: block;
+                transform: scale(1,1);
+            }
+
+            @keyframes zoomIn {
+                0%{-webkit-transform:scale3d(.3,.3,.3);-ms-transform:scale3d(.3,.3,.3);transform:scale3d(.3,.3,.3);opacity:0}
+                50%{opacity:1}
             }
             .vibu-dropdown-item {
                 display: block;
@@ -261,6 +270,7 @@
         <script src="../src/doc.js"></script>
         <script src="../src/editor-text.js"></script>
         <script src="../src/parser.js"></script>
+        <script src="../src/ui.js"></script>
         <script>
             $(function () {
                 let contents = {
