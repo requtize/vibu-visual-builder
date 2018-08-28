@@ -9,41 +9,18 @@ vibu.selectable = function (editor) {
 
     this.init = function () {
         let self = this;
-        let canvas = this.editor.doc.getCanvasContent();
 
-        this.selectedLayer = this.editor.getNode().find('.vibu-element-boundaries-active');
-        this.hoveredLayer  = this.editor.getNode().find('.vibu-element-boundaries-hover');
+        this.editor.on('editor.ready', function () {
+            self.initAfterEditorReady();
+        }, 100);
 
-        canvas.find('[vibu-selectable]').each(function () {
-            self.addElementId($(this));
-            self.bindElementHoverEvents($(this));
-            self.bindElementClickEvents($(this));
-        });
-
-        $(this.editor.doc.getCanvasWindow()).on('scroll resize', function () {
-            if(self.selectedElement)
-            {
-                self.editor.trigger('selectable.selected.update-boundaries', {
-                    element: self.selectedElement
-                });
-            }
-            if(self.hoveredElement)
-            {
-                self.editor.trigger('selectable.hovered.update-boundaries', {
-                    element: self.selectedElement
-                });
-            }
-        });
-
-        canvas.click(function () {
-            self.editor.trigger('selectable.selected.none', {
-                element: self.selectedElement
+        this.editor.on('canvas.after-content', function () {
+            self.editor.canvas.getBody().find('[vibu-selectable]').each(function () {
+                self.addElementId($(this));
+                self.bindElementHoverEvents($(this));
+                self.bindElementClickEvents($(this));
             });
         });
-
-
-
-
 
         self.editor.on('selectable.hovered.on', function (data) {
             self.hoveredElement = self.editor.doc.findSelectableElement(data.element);
@@ -69,13 +46,16 @@ vibu.selectable = function (editor) {
         self.editor.on('selectable.hovered.update-boundaries', function () {
             let boundaries = self.editor.doc.getElementBoundaries(self.hoveredElement);
 
-            self.hoveredLayer
-                .css({
-                    width : boundaries.width,
-                    height: boundaries.height,
-                    left  : boundaries.left,
-                    top   : boundaries.top - boundaries.scrollTop
-                });
+            if(boundaries)
+            {
+                self.hoveredLayer
+                    .css({
+                        width : boundaries.width,
+                        height: boundaries.height,
+                        left  : boundaries.left,
+                        top   : boundaries.top - boundaries.scrollTop
+                    });
+            }
         });
 
         self.editor.on('selectable.hovered.out', function () {
@@ -103,12 +83,15 @@ vibu.selectable = function (editor) {
         self.editor.on('selectable.selected.update-boundaries', function () {
             let boundaries = self.editor.doc.getElementBoundaries(self.selectedElement);
 
-            self.selectedLayer.css({
-                width : boundaries.width,
-                height: boundaries.height,
-                left  : boundaries.left,
-                top   : boundaries.top - boundaries.scrollTop
-            });
+            if(boundaries)
+            {
+                self.selectedLayer.css({
+                    width : boundaries.width,
+                    height: boundaries.height,
+                    left  : boundaries.left,
+                    top   : boundaries.top - boundaries.scrollTop
+                });
+            }
         });
 
         self.editor.on('selectable.selected.none', function () {
@@ -116,6 +99,37 @@ vibu.selectable = function (editor) {
             self.selectedLayer.addClass('vibu-hidden');
         });
     };
+
+    this.initAfterEditorReady = function () {
+        let self = this;
+        let canvas = this.editor.canvas.getBody();
+
+        this.selectedLayer = this.editor.getNode().find('.vibu-element-boundaries-active');
+        this.hoveredLayer  = this.editor.getNode().find('.vibu-element-boundaries-hover');
+
+        $(this.editor.doc.getCanvasWindow()).on('scroll resize', function () {
+            if(self.selectedElement)
+            {
+                self.editor.trigger('selectable.selected.update-boundaries', {
+                    element: self.selectedElement
+                });
+            }
+            if(self.hoveredElement)
+            {
+                self.editor.trigger('selectable.hovered.update-boundaries', {
+                    element: self.selectedElement
+                });
+            }
+        });
+
+        canvas.click(function () {
+            self.editor.trigger('selectable.selected.none', {
+                element: self.selectedElement
+            });
+        });
+    };
+
+    this.load = function (onLoad) {};
 
     this.addElementId = function (element) {
         element.attr('vibu-element-id', vibu.generateId());

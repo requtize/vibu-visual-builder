@@ -1,15 +1,20 @@
 vibu.eventDispatcher = function () {
     this.listeners = [];
 
-    this.on = function(event, handler) {
+    this.on = function(event, handler, priority) {
         this.listeners.push({
-            events: [ event ],
-            handler: handler
+            priority: priority ? priority : 100,
+            events  : [ event ],
+            handler : handler
+        });
+
+        this.listeners.sort(function (a, b) {
+            return b.priority - a.priority;
         });
     }
 
     this.trigger = function(event, params) {
-        for(let i = 0; i < this.listeners.length; i++)
+        for(let i = this.listeners.length - 1; i >= 0; i--)
         {
             if(this.listeners[i].events.indexOf(event) >= 0)
             {

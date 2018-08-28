@@ -272,6 +272,10 @@
         <script src="../src/parser.js"></script>
         <script src="../src/ui.js"></script>
         <script src="../src/styles.js"></script>
+        <script src="../src/blocks.js"></script>
+        <script src="../src/editor.js"></script>
+        <script src="../src/canvas.js"></script>
+        <script src="../src/loader.js"></script>
         <script>
             $(function () {
                 let contents = {
@@ -961,7 +965,31 @@
             </script>
         </template>
         <template id="template-corimp">
-            <div class="contact-section" vibu-block>
+            <div class="contact-section" vibu-block="custom/block1">
+                <div class="content-container">
+                    <div class="contact-section-inner paralax-with-mask">
+                        <div class="paralax-with-mask-parallax">
+                            <div class="paralax-with-mask-img paralax-with-mask-fw" style="background-image:url('http://www.corimp.mediaprod.com.pl/Templates/Front/assets/app/images/contact-bg.jpg')" data-paroller-factor="0.1" data-paroller-type="foreground"></div>
+                        </div>
+                        <div class="bg-gradient"></div>
+                        <div class="bg-mask-bottom">
+                            <div class="paralax-with-mask-img paralax-with-mask-mask" style="background-image:url('http://www.corimp.mediaprod.com.pl/Templates/Front/assets/app/images/contact-bg.jpg')" data-paroller-factor="0.1" data-paroller-type="foreground"></div>
+                        </div>
+                        <div class="contact-content">
+                            <div class="contact-text"></div>
+                            <div class="contact-elms">
+                                <a href="tel:523208180" class="cbtn" vibu-editable="phone1link">
+                                    <img vibu-editable="phone1icon" src="http://www.corimp.mediaprod.com.pl/Templates/Front/images/icon-phone-white.svg" />
+                                    <span vibu-editable="phone1text">52 320 81 80</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+        <template id="template-corimp-full">
+            <div class="contact-section" vibu-block="custom/block1">
                 <div class="content-container">
                     <div class="contact-section-inner paralax-with-mask" vibu-selectable vibu-editable-background-image>
                         <div class="paralax-with-mask-parallax">
@@ -978,9 +1006,9 @@
                                 <p vibu-selectable vibu-editable-text><strong>biuro: od poniedziałku do piątku od 7:00 - 16:00</strong><br /><strong>online: 24 godziny 7 dni w tygodniu</strong></p>
                             </div>
                             <div class="contact-elms">
-                                <a href="tel:523208180" class="cbtn" vibu-selectable vibu-editable-link vibu-editable-class>
-                                    <img src="http://www.corimp.mediaprod.com.pl/Templates/Front/images/icon-phone-white.svg" vibu-selectable vibu-editable-image />
-                                    <span vibu-selectable vibu-editable-text>52 320 81 80</span>                    </a>
+                                <a href="tel:523208180" class="cbtn" vibu-selectable="phone1link" vibu-editable-link vibu-editable-class>
+                                    <img src="http://www.corimp.mediaprod.com.pl/Templates/Front/images/icon-phone-white.svg" vibu-selectable="phone1icon" vibu-editable-image />
+                                    <span vibu-selectable="phone1text" vibu-editable-text>52 320 81 80</span>                    </a>
                                 <a href="tel:523208185" class="cbtn" vibu-selectable vibu-editable-link vibu-editable-class>
                                     <img src="http://www.corimp.mediaprod.com.pl/Templates/Front/images/icon-phone-white.svg" vibu-selectable vibu-editable-image />
                                     <span vibu-selectable vibu-editable-text>52 320 81 85</span>                    </a>

@@ -3,52 +3,76 @@ vibu.editor = function (selector, options) {
     this.id        = null;
     this.eventDispatcher = null;
     this.options   = options;
+
+    this.loader    = null;
     this.renderer  = null;
     this.messengerRoot = null;
     this.resizer = null;
     this.selectable = null;
     this.heightWatcher = null;
     this.doc = null;
-    this.parser = null;
+    //this.parser = null;
     this.editorText = null;
-    this.ui = null;
+    this.ui     = null;
     this.styles = null;
+    this.blocks = null;
+    this.canvas = null;
 
     this.init = function () {
         let self = this;
 
-        this.id = vibu.generateId();
+        this.id      = vibu.generateId();
         this.options = $.extend({}, vibu.editor.defaults, this.options);
-        this.node = $(selector);
+        this.node    = $(selector);
         this.eventDispatcher = new vibu.eventDispatcher;
 
-        this.renderer   = new vibu.editorRenderer();
+        this.renderer   = new vibu.editorRenderer(this);
         this.resizer    = new vibu.resizer(this);
         this.selectable = new vibu.selectable(this);
         this.doc        = new vibu.doc(this);
-        this.parser     = new vibu.parser(this);
+        //this.parser     = new vibu.parser(this);
         this.editorText = new vibu.editorText(this);
         this.ui         = new vibu.ui(this);
         this.styles     = new vibu.styles(this);
+        this.blocks     = new vibu.blocks(this);
+        this.canvas     = new vibu.canvas(this);
+        this.heightWatcher = new vibu.canvasHeightWatcher(this);
 
-        this.editorText.init();
-        this.renderer.render(this);
+        this.loader = new vibu.loader();
 
-        this.heightWatcher = new vibu.canvasHeightWatcher(this.node.find('iframe'));
-        this.heightWatcher.onChange(function (height) {
-            self.eventDispatcher.trigger('canvas-height-change', {
-                height: height
-            });
-        });
+        this.canvas.init();
+        this.renderer.init();
+        this.styles.init();
+        this.selectable.init();
+        this.resizer.init();
+        this.ui.init();
+        this.heightWatcher.init();
+        this.blocks.init();
+        //this.editorText.init();
 
-        this.options.setup(this);
+        this.trigger('editor.init');
 
-        this.on('content-ready', function () {
-            self.styles.init();
-            self.selectable.init();
-            self.resizer.init();
-            self.ui.init();
-            self.parser.parse(self.doc.getCanvasContent());
+        this.canvas.load(this.loader);
+        this.renderer.load(this.loader);
+        this.styles.load(this.loader);
+        this.selectable.load(this.loader);
+        this.resizer.load(this.loader);
+        this.ui.load(this.loader);
+        this.heightWatcher.load(this.loader);
+        this.blocks.load(this.loader);
+        //this.editorText.load(this.loader);
+
+        /*this.on('content-ready', function () {
+            //self.parser.parse(self.doc.getCanvasContent());
+            self.trigger('editor.created');
+
+            self.setContent(self.options.contents);
+        });*/
+
+        this.loader.load(function () {
+            self.trigger('editor.ready');
+            self.options.setup(self);
+            self.setContent(self.options.contents);
             self.trigger('editor.created');
         });
 
@@ -67,8 +91,22 @@ vibu.editor = function (selector, options) {
         return this.id;
     };
 
-    this.on = function (event, handler) {
-        this.eventDispatcher.on(event, handler);
+    this.setContent = function (content) {
+        this.canvas.setContent(content);
+
+        return this;
+    };
+
+    this.getContent = function () {
+        return this.canvas.getContent();
+    };
+
+    this.on = function (event, handler, priority) {
+        this.eventDispatcher.on(event, handler, priority);
+    };
+
+    this.onReady = function (handler, priority) {
+        this.eventDispatcher.on('editor.ready', handler, priority);
     };
 
     this.trigger = function (event, params) {

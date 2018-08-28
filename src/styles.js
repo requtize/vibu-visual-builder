@@ -2,14 +2,12 @@ vibu.styles = function (editor) {
     this.editor = editor;
 
     this.controls = [];
+    this.loader   = null;
 
     this.init = function () {
         let self = this;
 
-        for(let i = 0; i < vibu.styles.controls.length; i++)
-        {
-            this.addControlToSidebar(vibu.styles.controls[i].name, vibu.styles.controls[i].factory);
-        }
+        this.loader = new vibu.loader();
 
         this.editor.on('selectable.selected.new', function (data) {
             self.decideControlsShow(data.element);
@@ -19,9 +17,30 @@ vibu.styles = function (editor) {
         this.editor.on('selectable.selected.none', function (data) {
 
         });
+
+        this.editor.onReady(function () {
+            self.appendControlsToDocument();
+        });
     };
 
-    this.addControlToSidebar = function (name, factory) {
+    this.load = function (loader) {
+        let self = this;
+
+        loader.add('styles', function (onLoad) {
+            for(let i = 0; i < vibu.styles.controls.length; i++)
+            {
+                self.loader.add('control.' + vibu.styles.controls[i].name, function (onControlLoad) {
+                    self.loadControl(vibu.styles.controls[i].name, vibu.styles.controls[i].factory, onControlLoad);
+                });
+            }
+
+            self.loader.load(function () {
+                onLoad();
+            });
+        });
+    };
+
+    this.loadControl = function (name, factory, onLoad) {
         let self = this;
         let url = 'http://localhost/vibu-visual-builder/src';
 
@@ -31,7 +50,24 @@ vibu.styles = function (editor) {
         let sidebar = this.editor.doc.getStyles();
 
         this.loadControlHtml(control.template, function (html) {
-            let node = $(html);
+            control.name = name.replace('core/', '');
+            control.html = '<div class="vibu-style-control vibu-hidden">' + html + '</div>';
+
+            self.controls.push(control);
+
+            onLoad();
+        });
+    };
+
+    this.appendControlsToDocument = function () {
+        let self    = this;
+        let sidebar = this.editor.doc.getStyles();
+
+        for(let i = 0; i < this.controls.length; i++)
+        {
+            let control = this.controls[i];
+
+            let node = $(control.html);
             let onChange = function (value) {
                 self.callOnChangeControl(control, value);
             };
@@ -39,18 +75,12 @@ vibu.styles = function (editor) {
             control.node = node;
 
             if(control.load)
-                control.load(node, onChange, self.editor);
+                control.load(node, onChange, this.editor);
             else
-                self.bindControlEvents(node, onChange);
+                this.bindControlEvents(node, onChange);
 
             sidebar.find('.vibu-controls-group').append(node);
-
-            self.controls.push({
-                name   : name,
-                control: control,
-                node   : node
-            });
-        });
+        }
     };
 
     this.loadControlHtml = function (url, callback) {
@@ -81,32 +111,40 @@ vibu.styles = function (editor) {
     this.callOnSelectElement = function (element) {
         for(let i = 0; i < this.controls.length; i++)
         {
-            let control = this.controls[i].control;
+            let control = this.controls[i];
 
             control.get(control.node, element);
         }
     };
 
     this.decideControlsShow = function (element) {
+        let editables = this.editor.blocks.getElementEditables(element);
+
         for(let i = 0; i < this.controls.length; i++)
         {
-            let control = this.controls[i].control;
+            let control = this.controls[i];
 
-            if(this.hasAttribute(element, 'vibu-editable-' + control.parserTag))
-                control.node.show();
+            if(editables.indexOf(control.name) >= 0 && control.valid(element) === true)
+                control.node.removeClass('vibu-hidden');
             else
-                control.node.hide();
+                control.node.addClass('vibu-hidden');
         }
     };
 
-    this.hasAttribute = function (element, attribute) {
-        let attr = element.attr(attribute);
-
-        return typeof attr !== typeof undefined && attr !== false;
-    }
-
     this.getSelectedElement = function () {
         return this.editor.selectable.selectedElement;
+    };
+
+    this.controlExists = function (name) {
+        for(let i = 0; i < this.controls.length; i++)
+        {
+            if(this.controls[i].name === name)
+            {
+                return true;
+            }
+        }
+
+        return false;
     };
 };
 
@@ -120,17 +158,29 @@ vibu.styles.control = function (name, factory) {
     });
 };
 vibu.styles.control.defaults = {
-    parserTag: '',
     template: null,
     group   : 'general',
     order   : 0,
     node    : null,
-    load    : function (control, editor) {},
+    name    : null,
+    html    : null,
+    /**
+     * Binds events to control. This function is a custom function and it's using is optional.
+     * If this will be ommited, system try to find element with 'vibu-control' attribute,
+     * and try to attach events to this control.
+     */
+    load    : null,
+    /**
+     * Detects if an element is a valid element that can be modified by this control.
+     * Ie. if is a link control, valid() should check if element is an A node.
+     * Returns true if element is valid.
+     */
+    valid   : function (element) {return true;},
     //set: 'expr:this.attr(class)',
     set     : function (control, element) {},
     //get: 'expr:this.attr(class)',
     get     : function (control, element) {}
-}
+};
 
 vibu.styles.group = function (id, name) {
     vibu.styles.groups.push({
@@ -151,7 +201,9 @@ vibu.styles.group('display', 'Wyświetlanie');
 vibu.styles.control('core/image', function (url, editor) {
     return {
         template: url + '/controls/image.html',
-        parserTag: 'image',
+        valid: function (element) {
+            return element.get(0).tagName == 'IMG';
+        },
         set: function (control, element) {
             element.attr('src', control.find('[vibu-control]').val());
         },
@@ -164,7 +216,6 @@ vibu.styles.control('core/image', function (url, editor) {
 vibu.styles.control('core/background-image', function (url, editor) {
     return {
         template: url + '/controls/background-image.html',
-        parserTag: 'background-image',
         set: function (control, element) {
             element.attr('src', control.find('[vibu-control]').val());
         },
@@ -177,7 +228,6 @@ vibu.styles.control('core/background-image', function (url, editor) {
 vibu.styles.control('core/html-class', function (url, editor) {
     return {
         template: url + '/controls/html-class.html',
-        parserTag: 'htmlclass',
         set: function (control, element) {
             element.attr('class', control.find('[vibu-control]').val());
         },
@@ -190,21 +240,21 @@ vibu.styles.control('core/html-class', function (url, editor) {
 vibu.styles.control('core/html-id', function (url, editor) {
     return {
         template: url + '/controls/html-id.html',
-        parserTag: 'htmlid',
     };
 });
 
 vibu.styles.control('core/node-tag', function (url, editor) {
     return {
         template: url + '/controls/node-tag.html',
-        parserTag: 'nodetag',
     };
 });
 
 vibu.styles.control('core/link', function (url, editor) {
     return {
         template: url + '/controls/link.html',
-        parserTag: 'link',
+        valid: function (element) {
+            return element.get(0).tagName == 'A';
+        },
         set: function (control, element) {
             element.attr('href', control.find('[vibu-control]').val());
         },

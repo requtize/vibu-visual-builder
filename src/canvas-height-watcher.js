@@ -1,13 +1,26 @@
-vibu.canvasHeightWatcher = function (iframe) {
-    this.iframe = iframe;
+vibu.canvasHeightWatcher = function (editor) {
+    this.editor = editor;
     this.interval = null;
     this.lastHeight = 0;
+
+    this.init = function () {
+        let self = this;
+
+        this.editor.onReady(function () {
+            self.onChange(function (height) {
+                self.editor.trigger('canvas-height-change', {
+                    height: height
+                });
+            });
+        }, 1000);
+    };
+
+    this.load = function (onLoad) {};
 
     this.onChange = function (callback) {
         let self = this;
 
-        let iframe = self.iframe.get(0);
-        let c = iframe.contentWindow ? iframe.contentWindow : iframe.contentDocument;
+        let c = self.editor.canvas.getWindow();
         let d = c.document;
 
         this.interval = setInterval(function () {

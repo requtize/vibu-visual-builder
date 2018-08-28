@@ -1,7 +1,21 @@
-vibu.editorRenderer = function () {
-    this.render = function (editor) {
-        let id   = editor.getId();
-        let options = editor.options;
+vibu.editorRenderer = function (editor) {
+    this.editor = editor;
+
+    this.init = function () {
+    };
+
+    this.load = function (loader) {
+        let self = this;
+
+        loader.add('canvas', function (onLoad) {
+            self.render(onLoad);
+        });
+    };
+
+    this.render = function (onLoad) {
+        let self = this;
+        let id   = this.editor.getId();
+        let options = this.editor.options;
 
         let container = $(vibu.editorRenderer.container);
 
@@ -29,7 +43,7 @@ vibu.editorRenderer = function () {
         {
             if(options.inplaceHeight == 'auto' || options.inplaceHeight == null)
             {
-                editor.eventDispatcher.on('canvas-height-change', function (data) {
+                this.editor.eventDispatcher.on('canvas-height-change', function (data) {
                     container.css('height', data.height + 'px');
                 });
             }
@@ -39,20 +53,23 @@ vibu.editorRenderer = function () {
             }
         }
 
-        editor.getNode().append(container);
+        this.editor.getNode().append(container);
 
-        let iframe = editor.getNode().find('iframe');
+        let iframe = this.editor.getNode().find('iframe');
 
         iframe.ready(function() {
+            if(iframe.hasClass('vibu-loaded'))
+                return;
+
             let body = iframe.contents().find('body');
             let head = iframe.contents().find('head');
 
-            for(let i = 0; i < editor.options.contentCss.length; i++)
-                head.append('<link rel="stylesheet" type="text/css" href="' + editor.options.contentCss[i] + '" />');
-            for(let i = 0; i < editor.options.contentJs.length; i++)
-                head.append('<script src="' + editor.options.contentJs[i] + '"></script>');
+            for(let i = 0; i < self.editor.options.contentCss.length; i++)
+                head.append('<link rel="stylesheet" type="text/css" href="' + self.editor.options.contentCss[i] + '" />');
+            for(let i = 0; i < self.editor.options.contentJs.length; i++)
+                head.append('<script src="' + self.editor.options.contentJs[i] + '"></script>');
 
-            if(editor.options.viewMode == 'inplace' && editor.options.inplaceHeight == 'auto')
+            if(self.editor.options.viewMode == 'inplace' && self.editor.options.inplaceHeight == 'auto')
                 body.addClass('vibu-prevent-scroll');
 
             head.append('<meta charset="utf-8">');
@@ -66,9 +83,8 @@ vibu.editorRenderer = function () {
             .vibu-prevent-scroll {overflow:hidden !important;}\
             [vibu-editor-text-empty] {min-height:12px;min-width:20px;max-width:100%;display:inline-block;}</style>');
 
-            body.html(editor.options.contents);
-
-            editor.trigger('content-ready');
+            iframe.addClass('vibu-loaded');
+            onLoad();
         });
     };
 };

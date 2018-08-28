@@ -2,10 +2,16 @@ vibu.ui = function (editor) {
     this.editor = editor;
 
     this.init = function () {
-        this._dropdowns(this.editor.getNode());
-        this._modals(this.editor.getNode());
-        this._checkboxes(this.editor.getNode());
+        let self = this;
+
+        this.editor.onReady(function () {
+            self._dropdowns(self.editor.getNode());
+            self._modals(self.editor.getNode());
+            self._checkboxes(self.editor.getNode());
+        });
     };
+
+    this.load = function (onLoad) {};
 
     this._dropdowns = function (node) {
         node.on('click', '.vibu-dropdown-toggle', function (e) {
