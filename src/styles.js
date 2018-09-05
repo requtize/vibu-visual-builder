@@ -50,7 +50,7 @@ vibu.styles = function (editor) {
         let sidebar = this.editor.doc.getStyles();
 
         this.loadControlHtml(control.template, function (html) {
-            control.name = name.replace('core/', '');
+            control.name = name;
             control.html = '<div class="vibu-style-control vibu-hidden">' + html + '</div>';
 
             self.controls.push(control);
@@ -67,7 +67,7 @@ vibu.styles = function (editor) {
         {
             let control = this.controls[i];
 
-            let node = $(control.html);
+            let node = self.createControlsNode(control.html);
             let onChange = function (value) {
                 self.callOnChangeControl(control, value);
             };
@@ -75,7 +75,7 @@ vibu.styles = function (editor) {
             control.node = node;
 
             if(control.load)
-                control.load(node, onChange, this.editor);
+                control.load.apply(self, [ node, onChange, this.editor ]);
             else
                 this.bindControlEvents(node, onChange);
 
@@ -146,12 +146,25 @@ vibu.styles = function (editor) {
 
         return false;
     };
+
+    this.createControlsNode = function (html) {
+        return $('<div class="vibu-controls-group">' + html + '</div>');
+    };
 };
 
 vibu.styles.controls = [];
 vibu.styles.groups = [];
 
 vibu.styles.control = function (name, factory) {
+    for(let i = 0; i < vibu.styles.controls.length; i++)
+    {
+        // If Style is already registered, we skip it.
+        if(vibu.styles.controls[i].name == name)
+        {
+            return;
+        }
+    }
+
     vibu.styles.controls.push({
         name   : name,
         factory: factory
@@ -159,27 +172,31 @@ vibu.styles.control = function (name, factory) {
 };
 vibu.styles.control.defaults = {
     template: null,
-    group   : 'general',
-    order   : 0,
-    node    : null,
-    name    : null,
-    html    : null,
+    group : 'general',
+    order : 0,
+    node  : null,
+    name  : null,
+    html  : null,
     /**
      * Binds events to control. This function is a custom function and it's using is optional.
      * If this will be ommited, system try to find element with 'vibu-control' attribute,
      * and try to attach events to this control.
+     * Arguments:
+     *     - node        - Node of control
+     *     - onChange    - Function that should be called when vibu-control changes its value.
+     *     - this.editor - Editor instance
      */
-    load    : null,
+    load: null,
     /**
      * Detects if an element is a valid element that can be modified by this control.
      * Ie. if is a link control, valid() should check if element is an A node.
      * Returns true if element is valid.
      */
-    valid   : function (element) {return true;},
+    valid: function (element) {return true;},
     //set: 'expr:this.attr(class)',
-    set     : function (control, element) {},
+    set: function (control, element) {},
     //get: 'expr:this.attr(class)',
-    get     : function (control, element) {}
+    get: function (control, element) {}
 };
 
 vibu.styles.group = function (id, name) {
@@ -198,7 +215,7 @@ vibu.styles.group('typography', 'Typografia');
 vibu.styles.group('size', 'Rozmiary');
 vibu.styles.group('display', 'Wyświetlanie');
 
-vibu.styles.control('core/image', function (url, editor) {
+vibu.styles.control('image', function (url, editor) {
     return {
         template: url + '/controls/image.html',
         valid: function (element) {
@@ -213,7 +230,7 @@ vibu.styles.control('core/image', function (url, editor) {
     };
 });
 
-vibu.styles.control('core/background-image', function (url, editor) {
+vibu.styles.control('background-image', function (url, editor) {
     return {
         template: url + '/controls/background-image.html',
         set: function (control, element) {
@@ -225,7 +242,7 @@ vibu.styles.control('core/background-image', function (url, editor) {
     };
 });
 
-vibu.styles.control('core/html-class', function (url, editor) {
+vibu.styles.control('html-class', function (url, editor) {
     return {
         template: url + '/controls/html-class.html',
         set: function (control, element) {
@@ -237,19 +254,19 @@ vibu.styles.control('core/html-class', function (url, editor) {
     };
 });
 
-vibu.styles.control('core/html-id', function (url, editor) {
+vibu.styles.control('html-id', function (url, editor) {
     return {
         template: url + '/controls/html-id.html',
     };
 });
 
-vibu.styles.control('core/node-tag', function (url, editor) {
+vibu.styles.control('node-tag', function (url, editor) {
     return {
         template: url + '/controls/node-tag.html',
     };
 });
 
-vibu.styles.control('core/link', function (url, editor) {
+vibu.styles.control('link', function (url, editor) {
     return {
         template: url + '/controls/link.html',
         valid: function (element) {
@@ -260,6 +277,69 @@ vibu.styles.control('core/link', function (url, editor) {
         },
         get: function (control, element) {
             control.find('[vibu-control]').val(element.attr('href'));
+        }
+    };
+});
+
+vibu.styles.control('margin', function (url, editor) {
+    let collectMarginClasses = function (node, spec) {
+        let result = [];
+        let source = node.prop('classList');
+        
+        for(let i = 0; i < source.length; ++i)
+        {
+            if(source[i].substring(0, 3) == 'm' + spec + '-')
+            {
+                result.push(source[i]);
+            }
+        }
+
+        return result;
+    };
+
+    let removeAllMarginClasses = function (node, spec) {
+        let list = collectMarginClasses(node, spec);
+
+        for(let i = 0; i < list.length; i++)
+        {
+            node.removeClass(list[i]);
+        }
+    };
+
+    let getMarginClass = function (node, spec) {
+        let list = collectMarginClasses(node, spec);
+
+        return list[0] ? list[0] : null;
+    };
+
+    return {
+        group: 'size',
+        template: url + '/controls/margin.html',
+        load: function (node, onChange, editor) {
+            this.bindControlEvents(node, onChange);
+
+            node.find('.vibu-dropdown-item').click(function (e) {
+                e.preventDefault();
+                let control = node.find('[vibu-control]');
+
+                if($(this).attr('data-margin') == '')
+                    control.val('');
+                else
+                    control.val('mb-' + $(this).attr('data-margin'));
+
+                onChange();
+            });
+        },
+        set: function (control, element) {
+            removeAllMarginClasses(element, 'b');
+
+            let val = control.find('[vibu-control]').val();
+
+            if(val)
+                element.addClass(val);
+        },
+        get: function (control, element) {
+            control.find('[vibu-control]').val(getMarginClass(element, 'b'));
         }
     };
 });

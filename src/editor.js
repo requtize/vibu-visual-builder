@@ -48,7 +48,7 @@ vibu.editor = function (selector, options) {
         this.ui.init();
         this.heightWatcher.init();
         this.blocks.init();
-        //this.editorText.init();
+        this.editorText.init();
 
         this.trigger('editor.init');
 
@@ -60,7 +60,7 @@ vibu.editor = function (selector, options) {
         this.ui.load(this.loader);
         this.heightWatcher.load(this.loader);
         this.blocks.load(this.loader);
-        //this.editorText.load(this.loader);
+        this.editorText.load(this.loader);
 
         /*this.on('content-ready', function () {
             //self.parser.parse(self.doc.getCanvasContent());
@@ -112,6 +112,14 @@ vibu.editor = function (selector, options) {
     this.trigger = function (event, params) {
         this.eventDispatcher.trigger(event, params);
     };
+
+    this.getBasepath = function () {
+        return 'http://localhost/vibu-visual-builder/src';
+    };
+
+    this.createAssetPath = function (path) {
+        return 'http://localhost/vibu-visual-builder/src' + path;
+    };
 }
 
 vibu.editor.defaults = {
@@ -155,6 +163,14 @@ vibu.editor.defaults = {
      * Empty array means none. 'null' means all registered.
      */
     plugins: null,
+    /**
+     * List of CSS frameworks that are included to the editor.
+     * Blocks are included only if they supports any of these frameworks.
+     * This should also include Icon Fonts!
+     * Remember to add framework major number, ie.
+     * - bootstrap-4, foundation-5, font-awesome-5
+     */
+    frameworks: [ 'bootstrap-4' ],
     /**
      * Setup function called after finishing editor setup.
      */

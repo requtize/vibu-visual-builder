@@ -22,11 +22,11 @@ vibu.canvas = function (editor) {
             content: content
         };
 
-        this.editor.trigger('canvas.content', params);
+        this.editor.trigger('canvas.before-get-content', params);
 
         this.body.html(params.content);
 
-        this.editor.trigger('canvas.after-content', params);
+        this.editor.trigger('canvas.set-content', params);
     };
 
     this.getContent = function () {
@@ -41,6 +41,15 @@ vibu.canvas = function (editor) {
         return params.content;
     };
 
+    this.appendBlock = function (html, after) {
+        if(after)
+            after.insertAfter(html);
+        else
+            this.body.append(html);
+
+        this.editor.trigger('canvas.append-content');
+    };
+
     this.getBody = function () {
         return this.body;
     };
@@ -52,8 +61,18 @@ vibu.canvas = function (editor) {
     };
 
     this.preventLinksClick = function () {
-        this.body.on('click mousedown mouseup', 'a', function (e) {
-            e.preventDefault();
+        this.body.on('click mouseup', 'a', function (e) {
+            let editable = null;
+
+            editable = $(e.target).attr('contenteditable');
+
+            if(! editable)
+                e.preventDefault();
+
+            editable = $(this).closest('[contenteditable]');
+
+            if(! editable.length)
+                e.preventDefault();
         });
     };
 };

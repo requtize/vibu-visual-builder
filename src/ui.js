@@ -8,6 +8,7 @@ vibu.ui = function (editor) {
             self._dropdowns(self.editor.getNode());
             self._modals(self.editor.getNode());
             self._checkboxes(self.editor.getNode());
+            self._accordions(self.editor.getNode());
         });
     };
 
@@ -39,5 +40,18 @@ vibu.ui = function (editor) {
 
     this._checkboxes = function (node) {
 
+    };
+
+    this._accordions = function (node) {
+        node.on('click', '.vibu-accordion-label', function () {
+            $(this)
+                .closest('.vibu-accordion')
+                .find('.vibu-accordion-item')
+                .removeClass('vibu-accordion-opened');
+
+            $(this)
+                .closest('.vibu-accordion-item')
+                .addClass('vibu-accordion-opened');
+        });
     };
 };

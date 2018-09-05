@@ -14,13 +14,17 @@ vibu.selectable = function (editor) {
             self.initAfterEditorReady();
         }, 100);
 
-        this.editor.on('canvas.after-content', function () {
-            self.editor.canvas.getBody().find('[vibu-selectable]').each(function () {
-                self.addElementId($(this));
+        this.editor.on('blocks.block', function (data) {
+            let nodes = data.node.find('[vibu-selectable]');
+
+            if(data.node.attr('vibu-selectable'))
+                nodes = nodes.add(data.node);
+
+            nodes.each(function () {
                 self.bindElementHoverEvents($(this));
                 self.bindElementClickEvents($(this));
             });
-        });
+        }, 100);
 
         self.editor.on('selectable.hovered.on', function (data) {
             self.hoveredElement = self.editor.doc.findSelectableElement(data.element);
@@ -101,28 +105,20 @@ vibu.selectable = function (editor) {
     };
 
     this.initAfterEditorReady = function () {
-        let self = this;
-        let canvas = this.editor.canvas.getBody();
+        let self   = this;
 
         this.selectedLayer = this.editor.getNode().find('.vibu-element-boundaries-active');
         this.hoveredLayer  = this.editor.getNode().find('.vibu-element-boundaries-hover');
 
         $(this.editor.doc.getCanvasWindow()).on('scroll resize', function () {
             if(self.selectedElement)
-            {
-                self.editor.trigger('selectable.selected.update-boundaries', {
-                    element: self.selectedElement
-                });
-            }
+                self.editor.trigger('selectable.selected.update-boundaries');
+
             if(self.hoveredElement)
-            {
-                self.editor.trigger('selectable.hovered.update-boundaries', {
-                    element: self.selectedElement
-                });
-            }
+                self.editor.trigger('selectable.hovered.update-boundaries');
         });
 
-        canvas.click(function () {
+        this.editor.canvas.getBody().click(function () {
             self.editor.trigger('selectable.selected.none', {
                 element: self.selectedElement
             });
@@ -130,10 +126,6 @@ vibu.selectable = function (editor) {
     };
 
     this.load = function (onLoad) {};
-
-    this.addElementId = function (element) {
-        element.attr('vibu-element-id', vibu.generateId());
-    };
 
     this.bindElementHoverEvents = function (element) {
         let self = this;

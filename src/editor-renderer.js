@@ -53,6 +53,8 @@ vibu.editorRenderer = function (editor) {
             }
         }
 
+        this.editor.options.contentCss.push(this.editor.createAssetPath('/front.css'));
+
         this.editor.getNode().append(container);
 
         let iframe = this.editor.getNode().find('iframe');
@@ -81,7 +83,8 @@ vibu.editorRenderer = function (editor) {
             body *[vibu-editable-text]:hover,\
             body *[vibu-editable-text] *:hover {cursor:text !important;}\
             .vibu-prevent-scroll {overflow:hidden !important;}\
-            [vibu-editor-text-empty] {min-height:12px;min-width:20px;max-width:100%;display:inline-block;}</style>');
+            [vibu-editor-text-empty] {min-height:12px;min-width:20px;max-width:100%;display:inline-block;}\
+            [contenteditable]:focus {outline:none !important}</style>');
 
             iframe.addClass('vibu-loaded');
             onLoad();
@@ -103,7 +106,8 @@ vibu.editorRenderer.container = '<div class="vibu-container">'
         + '</div>'
         + '<div class="vibu-sidebar vibu-sidebar-blocks">'
             + '<div class="vibu-sidebar-inner">'
-                + 'Blocks'
+                + '<div class="vibu-accordion">'
+                + '</div>'
             + '</div>'
         + '</div>'
         + '<div class="vibu-canvas">'

@@ -1,6 +1,12 @@
 vibu.eventDispatcher = function () {
     this.listeners = [];
 
+    /**
+     * [on description]
+     * @param  {string}   event
+     * @param  {callable} handler
+     * @param  {integer}  priority Lower value - higher priority.
+     */
     this.on = function(event, handler, priority) {
         this.listeners.push({
             priority: priority ? priority : 100,

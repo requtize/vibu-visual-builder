@@ -13,13 +13,15 @@ vibu.doc = function (editor) {
         if(! element)
             return null;
 
+        let doc = element.get(0).ownerDocument;
+
         return {
-            left: element.offset().left,
-            top: element.offset().top,
-            width: element.outerWidth(),
-            height: element.outerHeight(),
-            position: element.css('position'),
-            scrollTop: $(window).scrollTop()
+            left      : element.offset().left,
+            top       : element.offset().top,
+            width     : element.outerWidth(),
+            height    : element.outerHeight(),
+            position  : element.css('position'),
+            scrollTop : $(doc.defaultView || doc.parentWindow).scrollTop()
         };
     };
 
@@ -39,5 +41,9 @@ vibu.doc = function (editor) {
 
     this.getStyles = function () {
         return this.editor.getNode().find('.vibu-sidebar-styles .vibu-sidebar-inner');
+    };
+
+    this.getBlocks = function () {
+        return this.editor.getNode().find('.vibu-sidebar-blocks .vibu-sidebar-inner');
     };
 }
