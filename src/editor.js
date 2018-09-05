@@ -120,6 +120,10 @@ vibu.editor = function (selector, options) {
     this.createAssetPath = function (path) {
         return 'http://localhost/vibu-visual-builder/src' + path;
     };
+
+    this.addBlock = function (name) {
+        this.trigger('method.add-block', { name: name });
+    };
 }
 
 vibu.editor.defaults = {

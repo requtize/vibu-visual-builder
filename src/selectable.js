@@ -119,9 +119,11 @@ vibu.selectable = function (editor) {
         });
 
         this.editor.canvas.getBody().click(function () {
-            self.editor.trigger('selectable.selected.none', {
-                element: self.selectedElement
-            });
+            self.editor.trigger('selectable.selected.none');
+        });
+
+        this.editor.doc.getCanvas().closest('.vibu-canvas').click(function () {
+            self.editor.trigger('selectable.selected.none');
         });
     };
 

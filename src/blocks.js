@@ -2,12 +2,20 @@ vibu.blocks = function (editor) {
     this.editor = editor;
     this.blocks = [];
     this.groups = [];
+    this.placement = null;
 
     this.init = function () {
         let self = this;
 
         this.editor.on('blocks.block', function (data) {
             self.parseBlock(data);
+        }, -1000);
+
+        this.editor.on('method.add-block', function (data) {
+            let block = self.getBlock(data.name);
+
+            if(block)
+                self.placement.appendBlock(block);
         }, -1000);
 
         this.editor.on('canvas.set-content', function () {
@@ -54,35 +62,45 @@ vibu.blocks = function (editor) {
         let styles = this.editor.styles;
 
         data.node
+            // Make all block selectable.
             .attr('vibu-selectable', true)
-            .find('[vibu-editable]')
-            .each(function () {
-                let element = $(this);
-                let field   = element.attr('vibu-editable');
-                let block   = data.block;
+            // Make all block editable under special 'block'field name.
+            // Attribute value must be tes to unify all editables managing
+            // in belowed the .each() method.
+            .attr('vibu-editable', 'block');
 
-                let editables = block.getFieldEditables(field);
+        let editables = data.node.find('[vibu-editable]');
 
-                if(! editables)
-                    return;
+        // Add whole block to editable elements.
+        editables = editables.add(data.node);
 
-                let newEditables = [];
+        editables.each(function () {
+            let element = $(this);
+            let field   = element.attr('vibu-editable');
+            let block   = data.block;
 
-                for(let i = 0; i < editables.length; i++)
+            let editables = block.getFieldEditables(field);
+
+            if(! editables)
+                return;
+
+            let newEditables = [];
+
+            for(let i = 0; i < editables.length; i++)
+            {
+                if(styles.controlExists(editables[i]))
                 {
-                    if(styles.controlExists(editables[i]))
-                    {
-                        newEditables.push(editables[i])
-                    }
+                    newEditables.push(editables[i])
                 }
+            }
 
-                if(newEditables.length === 0)
-                    return;
+            if(newEditables.length === 0)
+                return;
 
-                block[field] = newEditables;
+            block[field] = newEditables;
 
-                element.attr('vibu-selectable', true);
-            });
+            element.attr('vibu-selectable', true);
+        });
     };
 
     this.getBlock = function (name) {
@@ -110,18 +128,23 @@ vibu.blocks = function (editor) {
         if(! block.html)
             return;
 
-        let supports = false;
-
-        for(let i = 0; i < frameworks.length; i++)
+        // If block does not contain any frameworks, that we add it for everyone.
+        // This is caused to make developers less writing while creating dedicated blocks.
+        if(block.frameworks.length == 0)
         {
-            if(block.frameworks.indexOf(frameworks[i]) >= 0)
-            {
-                supports = true;
-            }
-        }
+            let supports = false;
 
-        if(! supports)
-            return;
+            for(let i = 0; i < frameworks.length; i++)
+            {
+                if(block.frameworks.indexOf(frameworks[i]) >= 0)
+                {
+                    supports = true;
+                }
+            }
+
+            if(! supports)
+                return;
+        }
 
         this.blocks.push(block);
     };
@@ -145,8 +168,8 @@ vibu.blocks = function (editor) {
     };
 
     this.bindBlocksPlacement = function () {
-        let placement = new vibu.blocks._placement(this.editor);
-        placement.init();
+        this.placement = new vibu.blocks._placement(this.editor);
+        this.placement.init();
     };
 
     this.getElementEditables = function (element) {
@@ -258,6 +281,8 @@ vibu.blocks._placement = function (editor) {
             if(self.active)
             {
                 self.placeholder.show();
+                self.editor.selectable.updateActiveElement();
+                self.editor.selectable.updateHoveredElement();
             }
 
             self.canvasHovered = true;
@@ -265,6 +290,8 @@ vibu.blocks._placement = function (editor) {
             if(self.active)
             {
                 self.placeholder.hide();
+                self.editor.selectable.updateActiveElement();
+                self.editor.selectable.updateHoveredElement();
             }
 
             self.canvasHovered = false;
@@ -287,7 +314,7 @@ vibu.blocks._placement = function (editor) {
         this.placement.hide();
 
         if(this.canvasHovered)
-            this.appendBlockAtCurrentPosition();
+            this.appendBlockAtCurrentPosition(this.block);
 
         // Reset placeholder position to the top of canvas.
         this.placeholder.insertBefore(this.editor.doc.getCanvasContent().find('[vibu-block]').first());
@@ -370,13 +397,24 @@ vibu.blocks._placement = function (editor) {
         eventBubbler(iframe, 'onmouseup');
     }
 
-    this.appendBlockAtCurrentPosition = function () {
-        let node = $(this.block.html);
+    this.appendBlockAtCurrentPosition = function (block) {
+        let node = $(block.html);
 
         this.placeholder.before(node);
 
         this.editor.trigger('blocks.block', {
-            block: this.block,
+            block: block,
+            node : node
+        });
+    };
+
+    this.appendBlock = function (block) {
+        let node = $(block.html);
+
+        this.editor.doc.getCanvasContent().find('body').append(node);
+
+        this.editor.trigger('blocks.block', {
+            block: block,
             node : node
         });
     };
@@ -422,6 +460,10 @@ vibu.blocks.block.defaults = {
     label   : '',
     icon    : null,
     group   : 'default',
+    /**
+     * 'block' field is a special field name, that tells
+     * what editables should be binded to whole block container.
+     */
     fields  : {},
     getters : {},
     setters : {},
@@ -489,16 +531,31 @@ vibu.blocks.group('headline', function (url, editor) {
 vibu.blocks.group('features', function (url, editor) {
     return { label: 'Cechy' };
 });
+vibu.blocks.group('images', function (url, editor) {
+    return { label: 'Zdjęcia' };
+});
+vibu.blocks.group('video', function (url, editor) {
+    return { label: 'Video' };
+});
 
 vibu.blocks.block('core/text', function (url, editor) {
     return {
         group: 'text',
         label: 'Tekst - 1 kolumna',
         icon : 'http://localhost/vibu-visual-builder/dist/test-block-images/grid-12.jpg',
-        html : '<div class="vibu-block" vibu-block="core/text"><div class="container" vibu-block-container><div vibu-editable="text">Lorem ipsum...</div></div></div>',
+        html : '<div class="vibu-block" vibu-block="core/text">\
+            <div class="vibu-container container-fluid" vibu-block-container>\
+                <div class="row">\
+                    <div class="col">\
+                        <p vibu-editable="text">Lorem ipsum...</p>\
+                    </div>\
+                </div>\
+            </div>\
+        </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            text: [ 'text', 'mb', 'mt' ]
+            block: [ 'margin' ],
+            text: [ 'text', 'margin' ]
         }
     };
 });
@@ -508,11 +565,23 @@ vibu.blocks.block('core/text/col-6-6', function (url, editor) {
         group: 'text',
         label: 'Tekst - 2 kolumny',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/grid-6-6.jpg',
-        html: '<div></div>',
+        html: '<div class="vibu-block" vibu-block="core/text/col-6-6">\
+            <div class="vibu-container container-fluid" vibu-block-container>\
+                <div class="row">\
+                    <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6">\
+                        <p vibu-editable="text1">Lorem ipsum...</p>\
+                    </div>\
+                    <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6">\
+                        <p vibu-editable="text2">Lorem ipsum...</p>\
+                    </div>\
+                </div>\
+            </div>\
+        </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            text1: [ 'text' ],
-            text2: [ 'text' ],
+            block: [ 'margin' ],
+            text1: [ 'text', 'margin' ],
+            text2: [ 'text', 'margin' ],
         }
     };
 });
@@ -522,12 +591,27 @@ vibu.blocks.block('core/text/col-4-4-4', function (url, editor) {
         group: 'text',
         label: 'Tekst - 3 kolumny',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/grid-4-4-4.jpg',
-        html: '<div></div>',
+        html: '<div class="vibu-block" vibu-block="core/text/col-4-4-4">\
+            <div class="vibu-container container-fluid" vibu-block-container>\
+                <div class="row">\
+                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-12">\
+                        <p vibu-editable="text1">Lorem ipsum...</p>\
+                    </div>\
+                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6">\
+                        <p vibu-editable="text2">Lorem ipsum...</p>\
+                    </div>\
+                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6">\
+                        <p vibu-editable="text3">Lorem ipsum...</p>\
+                    </div>\
+                </div>\
+            </div>\
+        </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            text1: [ 'text' ],
-            text2: [ 'text' ],
-            text3: [ 'text' ],
+            block: [ 'margin' ],
+            text1: [ 'text', 'margin' ],
+            text2: [ 'text', 'margin' ],
+            text3: [ 'text', 'margin' ],
         }
     };
 });
@@ -537,13 +621,31 @@ vibu.blocks.block('core/text/col-3-3-3-3', function (url, editor) {
         group: 'text',
         label: 'Tekst - 4 kolumny',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/grid-3-3-3-3.jpg',
-        html: '<div></div>',
+        html: '<div class="vibu-block" vibu-block="core/text/col-3-3-3-3">\
+            <div class="vibu-container container-fluid" vibu-block-container>\
+                <div class="row">\
+                    <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
+                        <p vibu-editable="text1">Lorem ipsum...</p>\
+                    </div>\
+                    <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
+                        <p vibu-editable="text2">Lorem ipsum...</p>\
+                    </div>\
+                    <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
+                        <p vibu-editable="text3">Lorem ipsum...</p>\
+                    </div>\
+                    <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
+                        <p vibu-editable="text4">Lorem ipsum...</p>\
+                    </div>\
+                </div>\
+            </div>\
+        </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            text1: [ 'text' ],
-            text2: [ 'text' ],
-            text3: [ 'text' ],
-            text4: [ 'text' ],
+            block: [ 'margin' ],
+            text1: [ 'text', 'margin' ],
+            text2: [ 'text', 'margin' ],
+            text3: [ 'text', 'margin' ],
+            text4: [ 'text', 'margin' ],
         }
     };
 });

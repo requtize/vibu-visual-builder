@@ -15,7 +15,7 @@ vibu.styles = function (editor) {
         });
 
         this.editor.on('selectable.selected.none', function (data) {
-
+            self.hideControls();
         });
 
         this.editor.onReady(function () {
@@ -51,7 +51,7 @@ vibu.styles = function (editor) {
 
         this.loadControlHtml(control.template, function (html) {
             control.name = name;
-            control.html = '<div class="vibu-style-control vibu-hidden">' + html + '</div>';
+            control.html = self.createControlsNode(html);
 
             self.controls.push(control);
 
@@ -67,7 +67,7 @@ vibu.styles = function (editor) {
         {
             let control = this.controls[i];
 
-            let node = self.createControlsNode(control.html);
+            let node = control.html;
             let onChange = function (value) {
                 self.callOnChangeControl(control, value);
             };
@@ -106,6 +106,9 @@ vibu.styles = function (editor) {
         });
 
         control.set(control.node, this.getSelectedElement());
+
+        this.editor.selectable.updateActiveElement();
+        this.editor.selectable.updateHoveredElement();
     };
 
     this.callOnSelectElement = function (element) {
@@ -131,6 +134,13 @@ vibu.styles = function (editor) {
         }
     };
 
+    this.hideControls = function () {
+        for(let i = 0; i < this.controls.length; i++)
+        {
+            this.controls[i].node.addClass('vibu-hidden');
+        }
+    };
+
     this.getSelectedElement = function () {
         return this.editor.selectable.selectedElement;
     };
@@ -148,7 +158,7 @@ vibu.styles = function (editor) {
     };
 
     this.createControlsNode = function (html) {
-        return $('<div class="vibu-controls-group">' + html + '</div>');
+        return $('<div class="vibu-hidden">' + html + '</div>');
     };
 };
 
@@ -318,28 +328,35 @@ vibu.styles.control('margin', function (url, editor) {
         load: function (node, onChange, editor) {
             this.bindControlEvents(node, onChange);
 
-            node.find('.vibu-dropdown-item').click(function (e) {
-                e.preventDefault();
-                let control = node.find('[vibu-control]');
+            node.find('[data-spec]').each(function () {
+                let group = $(this);
 
-                if($(this).attr('data-margin') == '')
-                    control.val('');
-                else
-                    control.val('mb-' + $(this).attr('data-margin'));
+                group.find('.vibu-dropdown-item').click(function (e) {
+                    e.preventDefault();
+                    group.find('[vibu-control]').val($(this).attr('data-margin'));
 
-                onChange();
+                    onChange();
+                });
             });
         },
         set: function (control, element) {
-            removeAllMarginClasses(element, 'b');
+            control.find('[data-spec]').each(function () {
+                let spec = $(this).attr('data-spec');
 
-            let val = control.find('[vibu-control]').val();
+                removeAllMarginClasses(element, spec);
 
-            if(val)
-                element.addClass(val);
+                let val = $(this).find('[vibu-control]').val();
+
+                if(val)
+                    element.addClass(val);
+            });
         },
         get: function (control, element) {
-            control.find('[vibu-control]').val(getMarginClass(element, 'b'));
+            control.find('[data-spec]').each(function () {
+                let spec = $(this).attr('data-spec');
+
+                $(this).find('[vibu-control]').val(getMarginClass(element, spec));
+            });
         }
     };
 });

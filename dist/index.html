@@ -338,14 +338,22 @@
                 let content = 'templatePrimitiveBs4';
 
                 vibu.create('#vibu-editor', {
-                    contents: contents[content].contents,
+                    //contents: contents[content].contents,
                     //viewMode: 'inplace',
                     //responsive: false,
                     //blocksActive: false,
                     //stylesActive: false,
                     contentCss: contents[content].contentCss,
                     contentJs: contents[content].contentJs,
-                    //frameworks: [ 'bootstrap-4' ]
+                    //frameworks: [ 'bootstrap-4' ],
+                    setup: function (editor) {
+                        editor.on('editor.created', function () {
+                            editor.addBlock('core/text');
+                            editor.addBlock('core/text/col-6-6');
+                            editor.addBlock('core/text/col-4-4-4');
+                            editor.addBlock('core/text/col-3-3-3-3');
+                        });
+                    }
                 });
             });
         </script>
@@ -1055,7 +1063,7 @@
         </template>
         <template id="template-primitive-bs4">
             <div class="vibu-block" vibu-block="core/text">
-                <div class="container" vibu-block-container>
+                <div class="vibu-container container-fluid" vibu-block-container>
                     <div class="row">
                         <div class="col">
                             <p vibu-editable="text">Lorem ipsum...</p>
@@ -1064,45 +1072,45 @@
                 </div>
             </div>
             <div class="vibu-block" vibu-block="core/text/col-6-6">
-                <div class="container" vibu-block-container>
+                <div class="vibu-container container-fluid" vibu-block-container>
                     <div class="row">
-                        <div class="col-6">
+                        <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6">
                             <p vibu-editable="text1">Lorem ipsum...</p>
                         </div>
-                        <div class="col-6">
+                        <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6">
                             <p vibu-editable="text2">Lorem ipsum...</p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="vibu-block" vibu-block="core/text/col-4-4-4">
-                <div class="container" vibu-block-container>
+                <div class="vibu-container container-fluid" vibu-block-container>
                     <div class="row">
-                        <div class="col-4">
+                        <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-12">
                             <p vibu-editable="text1">Lorem ipsum...</p>
                         </div>
-                        <div class="col-4">
+                        <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6">
                             <p vibu-editable="text2">Lorem ipsum...</p>
                         </div>
-                        <div class="col-4">
+                        <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6">
                             <p vibu-editable="text3">Lorem ipsum...</p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="vibu-block" vibu-block="core/text/col-3-3-3-3">
-                <div class="container" vibu-block-container>
+                <div class="vibu-container container-fluid" vibu-block-container>
                     <div class="row">
-                        <div class="col-3">
+                        <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">
                             <p vibu-editable="text1">Lorem ipsum...</p>
                         </div>
-                        <div class="col-3">
+                        <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">
                             <p vibu-editable="text2">Lorem ipsum...</p>
                         </div>
-                        <div class="col-3">
+                        <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">
                             <p vibu-editable="text3">Lorem ipsum...</p>
                         </div>
-                        <div class="col-3">
+                        <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">
                             <p vibu-editable="text4">Lorem ipsum...</p>
                         </div>
                     </div>
