@@ -38,7 +38,10 @@ vibu.canvas = function (editor) {
 
         this.editor.trigger('canvas.get-content', params);
 
-        return params.content;
+        let node = $(params.content);
+        node.find('.vibu-dynamic-element').remove();
+
+        return node.html();
     };
 
     this.appendBlock = function (html, after) {

@@ -2,10 +2,12 @@ vibu.blocks = function (editor) {
     this.editor = editor;
     this.blocks = [];
     this.groups = [];
-    this.placement = null;
+    this.addable = null;
+    this.movable = null;
 
     this.init = function () {
         let self = this;
+        let body = null;
 
         this.editor.on('blocks.block', function (data) {
             self.parseBlock(data);
@@ -15,11 +17,11 @@ vibu.blocks = function (editor) {
             let block = self.getBlock(data.name);
 
             if(block)
-                self.placement.appendBlock(block);
+                self.addable.appendBlock(block);
         }, -1000);
 
         this.editor.on('canvas.set-content', function () {
-            self.editor.canvas.getBody().find('[vibu-block]').each(function () {
+            body.find('[vibu-block]').each(function () {
                 let block = self.getBlock($(this).attr('vibu-block'));
 
                 let eventName = null;
@@ -36,9 +38,20 @@ vibu.blocks = function (editor) {
             });
 
             self.bindBlocksPlacement();
+            self.bindBlocksMovable();
         }, -1000);
 
+        this.editor.on('blocks.movable-start', function () {
+            body.addClass('vibu-movable-active');
+        });
+
+        this.editor.on('blocks.movable-end', function () {
+            body.removeClass('vibu-movable-active');
+        });
+
         this.editor.onReady(function () {
+            body = self.editor.canvas.getBody();
+
             for(let i = 0; i < self.groups.length; i++)
                 self.createBlocksGroup(self.groups[i]);
 
@@ -168,8 +181,13 @@ vibu.blocks = function (editor) {
     };
 
     this.bindBlocksPlacement = function () {
-        this.placement = new vibu.blocks._placement(this.editor);
-        this.placement.init();
+        this.addable = new vibu.blocks._addable(this.editor);
+        this.addable.init();
+    };
+
+    this.bindBlocksMovable = function () {
+        this.movable = new vibu.blocks._movable(this.editor);
+        this.movable.init();
     };
 
     this.getElementEditables = function (element) {
@@ -205,7 +223,7 @@ vibu.blocks = function (editor) {
     };
 };
 
-vibu.blocks._placement = function (editor) {
+vibu.blocks._addable = function (editor) {
     this.editor = editor;
     this.active = false;
     this.placement = null;
@@ -221,11 +239,11 @@ vibu.blocks._placement = function (editor) {
 
         this.bubbleIframeMouseMove(this.editor.doc.getCanvas().get(0));
 
-        root.find('.vibu-visual-builder').append('<div class="vibu-placement">Wstaw blok: <span></span></div>');
-        canvas.find('body').append('<div class="vibu-placeholder" style="display:none;padding:20px;text-align:center;font-size:14px;background-color:#ddd;border-radius:5px;margin:30px 0">Wstaw tutaj</div>');
+        root.find('.vibu-visual-builder').append('<div class="vibu-placement-tooltip">Wstaw blok: <span></span></div>');
+        canvas.find('body').append('<div class="vibu-placement-placeholder vibu-dynamic-element" style="display:none;padding:20px;text-align:center;font-size:14px;background-color:#ddd;">Wstaw tutaj</div>');
 
-        this.placement   = root.find('.vibu-placement');
-        this.placeholder = canvas.find('.vibu-placeholder');
+        this.placement   = root.find('.vibu-placement-tooltip');
+        this.placeholder = canvas.find('.vibu-placement-placeholder');
 
         let blocks = this.editor.doc.getBlocks();
 
@@ -419,6 +437,168 @@ vibu.blocks._placement = function (editor) {
         });
     };
 };
+
+vibu.blocks._movable = function (editor) {
+    this.editor = editor;
+    this.started = false;
+    this.movable = false;
+    this.placeholder = null;
+    this.lastPlaceholderPosition = null;
+    this.cursorStartPosition = null;
+    this.blockPositionStart = null;
+    this.block = null;
+    this.treshold = 5;
+
+    this.init = function () {
+        let self   = this;
+        let canvas = this.editor.doc.getCanvasContent();
+
+        canvas.find('body').append('<div class="vibu-movable-placeholder vibu-dynamic-element" style="display:none;background-color:#ddd;"></div>');
+
+        this.placeholder = canvas.find('.vibu-movable-placeholder');
+
+        canvas.find('body').on('mousedown', '[vibu-block]', function (e) {
+            if(self.started === true)
+                return true;
+            // Prevent on editable element.
+            if($(e.target).attr('contenteditable'))
+                return true;
+            // Prevent on any child of editable element.
+            if($(e.target).closest('[contenteditable]').length)
+                return true;
+
+            self.started = true;
+            self.block   = $(this);
+
+            self.cursorStartPosition = e.clientY;
+        }).on('mousemove', '[vibu-block]', function (e) {
+            if(self.active === false)
+                return true;
+
+            let block = $(this);
+            let name  = block.attr('vibu-block');
+
+            let position = self.detectBlockHoverHalf(block, e);
+
+            if(self.lastPlaceholderPosition != position + name)
+            {
+                if(position == 'top')
+                {
+                    self.lastPlaceholderPosition = position + name;
+                    self.placeholder.insertBefore(block);
+                }
+                else
+                {
+                    self.lastPlaceholderPosition = position + name;
+                    self.placeholder.insertAfter(block);
+                }
+            }
+        });
+
+        $('body').on('mouseup', function () {
+            if(self.started === false)
+                return;
+
+            self.endMovable();
+
+            self.started = false;
+            self.block   = null;
+
+            self.cursorStartPosition = null;
+        });
+
+        $('body').on('mousemove', function (e) {
+            if(self.started === true && self.movable === false)
+            {
+                self.detectMovable(e.offsetY);
+            }
+            else if(self.started === true && self.movable === true)
+            {
+                self.moveBlock(e.offsetY);
+            }
+        });
+    };
+
+    this.detectMovable = function (clientY) {
+        let delta = Math.abs(clientY - this.cursorStartPosition);
+
+        if(delta >= this.treshold)
+        {
+            this.startMovable();
+        }
+    };
+
+    this.startMovable = function () {
+        if(this.movable === true)
+            return;
+
+        this.movable = true;
+
+        this.editor.selectable.disable();
+        this.blockPositionStart = this.block.offset().top;
+        this.block.addClass('vibu-block-movable');
+
+        this.placeholder.show().css({
+            height: this.block.outerHeight(),
+        });
+
+        this.placeholder.insertBefore(this.block);
+
+        this.block.css({
+            top: this.blockPositionStart
+        });
+
+        this.editor.trigger('blocks.movable-start', { block: this.block });
+    };
+
+    this.moveBlock = function (clientY) {
+        if(this.movable === false)
+            return;
+
+        this.block.css({
+            top: this.blockPositionStart + clientY - this.cursorStartPosition
+        });
+    };
+
+    this.endMovable = function () {
+        if(this.movable === false)
+            return;
+
+        this.editor.trigger('blocks.movable-end', { block: this.block });
+
+        this.block.css({
+            top: 'auto'
+        });
+
+        this.block.removeClass('vibu-block-movable');
+        this.placeholder.hide();
+
+        this.block.insertBefore(this.placeholder);
+
+        this.movable = false;
+        this.blockPositionStart = null;
+
+        this.editor.selectable.enable();
+    };
+
+    this.detectBlockHoverHalf = function (block, event) {
+        let height = block.height();
+        let half   = height / 2;
+
+        if(event.offsetY >= 0 && event.offsetY <= half)
+            return 'top';
+        else
+            return 'bottom';
+    };
+};
+
+
+
+
+
+
+
+
 
 vibu.blocks.blocks = [];
 vibu.blocks.groups = [];
@@ -649,6 +829,40 @@ vibu.blocks.block('core/text/col-3-3-3-3', function (url, editor) {
         }
     };
 });
+
+vibu.blocks.block('core/image', function (url, editor) {
+    return {
+        group: 'images',
+        icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/images-single.jpg',
+        html : '<div class="vibu-block" vibu-block="core/image">\
+            <div class="vibu-container container-fluid" vibu-block-container>\
+                <div class="row">\
+                    <div class="col text-center">\
+                        <img src="http://via.placeholder.com/1280x100&text=VIBU" vibu-editable="image" />\
+                    </div>\
+                </div>\
+            </div>\
+        </div>',
+        frameworks: [ 'bootstrap-4' ],
+        fields: {
+            block: [ 'margin' ],
+            image: [ 'image', 'margin', 'alt', 'title' ]
+        }
+    };
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 vibu.blocks.block('core/headline', function (url, editor) {
     return {

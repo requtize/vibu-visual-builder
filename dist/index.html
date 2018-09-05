@@ -76,8 +76,8 @@
             .vibu-accordion .vibu-accordion-content {padding:10px;display:none;}
             .vibu-accordion .vibu-accordion-item.vibu-accordion-opened .vibu-accordion-content {display:block;border-bottom:1px solid #ddd;}
 
-            .vibu-placement {display:none;position:fixed;z-index:100;left:20px;top:20px;padding:7px 12px;border-radius:3px;box-shadow:0 0 5px rgba(0,0,0,.3);background-color:rgba(255,255,255,.7);transform:translate(10px,10px);font-size:11px;font-style:italic;width:200px;}
-            .vibu-placement span {font-weight:bold;font-style:normal}
+            .vibu-placement-tooltip {display:none;position:fixed;z-index:100;left:20px;top:20px;padding:7px 12px;border-radius:3px;box-shadow:0 0 5px rgba(0,0,0,.3);background-color:rgba(255,255,255,.7);transform:translate(10px,10px);font-size:11px;font-style:italic;width:200px;pointer-events:none}
+            .vibu-placement-tooltip span {font-weight:bold;font-style:normal}
 
 
 
@@ -352,6 +352,7 @@
                             editor.addBlock('core/text/col-6-6');
                             editor.addBlock('core/text/col-4-4-4');
                             editor.addBlock('core/text/col-3-3-3-3');
+                            editor.addBlock('core/image');
                         });
                     }
                 });

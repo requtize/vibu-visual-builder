@@ -7,6 +7,8 @@ vibu.selectable = function (editor) {
     this.selectedLayer = null;
     this.hoveredLayer  = null;
 
+    this.disabled = false;
+
     this.init = function () {
         let self = this;
 
@@ -27,6 +29,9 @@ vibu.selectable = function (editor) {
         }, 100);
 
         self.editor.on('selectable.hovered.on', function (data) {
+            if(self.disabled)
+                return;
+
             self.hoveredElement = self.editor.doc.findSelectableElement(data.element);
 
             /**
@@ -48,6 +53,9 @@ vibu.selectable = function (editor) {
         });
 
         self.editor.on('selectable.hovered.update-boundaries', function () {
+            if(self.disabled)
+                return;
+
             let boundaries = self.editor.doc.getElementBoundaries(self.hoveredElement);
 
             if(boundaries)
@@ -69,6 +77,9 @@ vibu.selectable = function (editor) {
 
 
         self.editor.on('selectable.selected.new', function (data) {
+            if(self.disabled)
+                return;
+
             self.selectedElement = self.editor.doc.findSelectableElement(data.element);
 
             let boundaries = self.editor.doc.getElementBoundaries(self.selectedElement);
@@ -85,6 +96,9 @@ vibu.selectable = function (editor) {
         });
 
         self.editor.on('selectable.selected.update-boundaries', function () {
+            if(self.disabled)
+                return;
+
             let boundaries = self.editor.doc.getElementBoundaries(self.selectedElement);
 
             if(boundaries)
@@ -133,13 +147,14 @@ vibu.selectable = function (editor) {
         let self = this;
 
         element.hover(function () {
+            if(self.disabled)
+                return;
+
             self.editor.trigger('selectable.hovered.on', {
                 element: element
             });
         }, function () {
-            self.editor.trigger('selectable.hovered.out', {
-                element: element
-            });
+            self.editor.trigger('selectable.hovered.out');
         });
     };
 
@@ -147,6 +162,9 @@ vibu.selectable = function (editor) {
         let self = this;
 
         element.click(function (DOMEvent) {
+            if(self.disabled)
+                return;
+
             DOMEvent.preventDefault();
             DOMEvent.stopPropagation();
 
@@ -157,10 +175,27 @@ vibu.selectable = function (editor) {
     };
 
     this.updateActiveElement = function () {
+        if(this.disabled)
+            return;
+
         this.editor.trigger('selectable.selected.update-boundaries');
     };
 
     this.updateHoveredElement = function () {
+        if(this.disabled)
+            return;
+
         this.editor.trigger('selectable.hovered.update-boundaries');
+    };
+
+    this.disable = function () {
+        this.editor.trigger('selectable.hovered.out');
+        this.editor.trigger('selectable.selected.none');
+
+        this.disabled = true;
+    };
+
+    this.enable = function () {
+        this.disabled = false;
     };
 };
