@@ -80,15 +80,13 @@ vibu.editorRenderer = function (editor) {
             body *:hover {cursor:default !important;}\
             body *[vibu-selectable]:hover,\
             body *[vibu-selectable] *:hover {cursor:pointer !important;}\
-            body *[vibu-editable-text]:hover,\
-            body *[vibu-editable-text] *:hover {cursor:text !important;}\
             body.vibu-movable-active *[vibu-selectable]:hover,\
             body.vibu-movable-active *[vibu-selectable] *:hover {cursor:move !important;}\
+            body.vibu-movable-active .vibu-movable-placeholder:hover {cursor:move !important;}\
             .vibu-prevent-scroll {overflow:hidden !important;}\
             [vibu-editor-text-empty] {min-height:12px;min-width:20px;max-width:100%;display:inline-block;}\
             [contenteditable]:focus {outline:none !important}\
-            body .vibu-block-movable {position:absolute;z-index:1000;left:0;top:0;right:0;background-color:#fff !important;cursor:move !important;pointer-events:none;}\
-            body .vibu-block-movable:hover {cursor:move !important}\
+            body .vibu-block-movable {position:absolute;z-index:1000;left:0;top:0;right:0;background-color:#fff !important;pointer-events:none;}\
             </style>');
 
             iframe.addClass('vibu-loaded');

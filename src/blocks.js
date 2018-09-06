@@ -322,6 +322,8 @@ vibu.blocks._addable = function (editor) {
 
         this.active = true;
         this.placement.show();
+
+        this.editor.selectable.disable();
     };
 
     this.endPlacement = function () {
@@ -342,6 +344,8 @@ vibu.blocks._addable = function (editor) {
         this.editor.selectable.updateHoveredElement();
 
         this.block = null;
+
+        this.editor.selectable.enable();
     };
 
     this.updatePlacement = function (mouseEvent) {
@@ -471,6 +475,8 @@ vibu.blocks._movable = function (editor) {
             self.block   = $(this);
 
             self.cursorStartPosition = e.clientY;
+
+            self.preventTextSelection(e);
         }).on('mousemove', '[vibu-block]', function (e) {
             if(self.active === false)
                 return true;
@@ -515,6 +521,7 @@ vibu.blocks._movable = function (editor) {
             else if(self.started === true && self.movable === true)
             {
                 self.moveBlock(e.offsetY);
+                e.preventDefault();
             }
         });
     };
@@ -589,6 +596,10 @@ vibu.blocks._movable = function (editor) {
             return 'top';
         else
             return 'bottom';
+    };
+
+    this.preventTextSelection = function (e) {
+        e.preventDefault();
     };
 };
 
@@ -714,9 +725,22 @@ vibu.blocks.group('features', function (url, editor) {
 vibu.blocks.group('images', function (url, editor) {
     return { label: 'Zdjęcia' };
 });
+vibu.blocks.group('galleries', function (url, editor) {
+    return { label: 'Galerie zdjęć' };
+});
+vibu.blocks.group('text-and-images', function (url, editor) {
+    return { label: 'Text + Zdjęcia' };
+});
 vibu.blocks.group('video', function (url, editor) {
     return { label: 'Video' };
 });
+/**
+ * UL, OL, kilka styli danej listy.
+ */
+vibu.blocks.group('list', function (url, editor) {
+    return { label: 'Listy' };
+});
+
 
 vibu.blocks.block('core/text', function (url, editor) {
     return {
@@ -838,7 +862,7 @@ vibu.blocks.block('core/image', function (url, editor) {
             <div class="vibu-container container-fluid" vibu-block-container>\
                 <div class="row">\
                     <div class="col text-center">\
-                        <img src="http://via.placeholder.com/1280x100&text=VIBU" vibu-editable="image" />\
+                        <img src="http://via.placeholder.com/1400x100&text=VIBU" vibu-editable="image" />\
                     </div>\
                 </div>\
             </div>\
@@ -847,6 +871,60 @@ vibu.blocks.block('core/image', function (url, editor) {
         fields: {
             block: [ 'margin' ],
             image: [ 'image', 'margin', 'alt', 'title' ]
+        }
+    };
+});
+
+vibu.blocks.block('core/image/col-6-6', function (url, editor) {
+    return {
+        group: 'images',
+        icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/images-6-6.jpg',
+        html : '<div class="vibu-block" vibu-block="core/image/col-6-6">\
+            <div class="vibu-container container-fluid" vibu-block-container>\
+                <div class="row">\
+                    <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-0">\
+                        <img src="http://via.placeholder.com/660x100&text=VIBU" vibu-editable="image1" />\
+                    </div>\
+                    <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6 text-center">\
+                        <img src="http://via.placeholder.com/660x100&text=VIBU" vibu-editable="image2" />\
+                    </div>\
+                </div>\
+            </div>\
+        </div>',
+        frameworks: [ 'bootstrap-4' ],
+        fields: {
+            block: [ 'margin' ],
+            image1: [ 'image', 'margin', 'alt', 'title' ],
+            image2: [ 'image', 'margin', 'alt', 'title' ],
+        }
+    };
+});
+
+vibu.blocks.block('core/image/col-4-4-4', function (url, editor) {
+    return {
+        group: 'images',
+        icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/images-4-4-4.jpg',
+        html : '<div class="vibu-block" vibu-block="core/image/col-4-4-4">\
+            <div class="vibu-container container-fluid" vibu-block-container>\
+                <div class="row">\
+                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-12 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-2">\
+                        <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-editable="image1" />\
+                    </div>\
+                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-2">\
+                        <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-editable="image2" />\
+                    </div>\
+                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6 text-center">\
+                        <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-editable="image3" />\
+                    </div>\
+                </div>\
+            </div>\
+        </div>',
+        frameworks: [ 'bootstrap-4' ],
+        fields: {
+            block: [ 'margin' ],
+            image1: [ 'image', 'margin', 'alt', 'title' ],
+            image2: [ 'image', 'margin', 'alt', 'title' ],
+            image3: [ 'image', 'margin', 'alt', 'title' ],
         }
     };
 });

@@ -270,6 +270,18 @@ vibu.styles.control('html-id', function (url, editor) {
     };
 });
 
+/*vibu.styles.control('alt', function (url, editor) {
+    return {
+        template: url + '/controls/alt.html',
+    };
+});
+
+vibu.styles.control('title', function (url, editor) {
+    return {
+        template: url + '/controls/title.html',
+    };
+});*/
+
 vibu.styles.control('node-tag', function (url, editor) {
     return {
         template: url + '/controls/node-tag.html',
