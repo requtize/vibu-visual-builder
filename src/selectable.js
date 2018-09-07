@@ -132,16 +132,12 @@ vibu.selectable = function (editor) {
 
     this.bindElementHoverEvents = function (element) {
         let self = this;
-        let doc  = this.editor.doc;
 
         element.hover(function () {
             if(self.disabled)
                 return;
 
-            self.editor.trigger('selectable.hovered.on', {
-                element   : element,
-                boundaries: doc.getElementBoundaries(element)
-            });
+            self.hover(element);
         }, function () {
             self.editor.trigger('selectable.hovered.out');
         });
@@ -149,7 +145,6 @@ vibu.selectable = function (editor) {
 
     this.bindElementClickEvents = function (element) {
         let self = this;
-        let doc  = this.editor.doc;
 
         element.click(function (DOMEvent) {
             if(self.disabled)
@@ -157,10 +152,7 @@ vibu.selectable = function (editor) {
 
             if(! self.selectedElement || self.selectedElement.is(element) === false)
             {
-                self.editor.trigger('selectable.selected.new', {
-                    element   : element,
-                    boundaries: doc.getElementBoundaries(element)
-                });
+                self.select(element);
             }
 
             // Propagation is stopped, so we have to manually call event in editors dispatcher.
@@ -170,6 +162,20 @@ vibu.selectable = function (editor) {
 
             DOMEvent.preventDefault();
             DOMEvent.stopPropagation();
+        });
+    };
+
+    this.select = function (element) {
+        this.editor.trigger('selectable.selected.new', {
+            element   : element,
+            boundaries: this.editor.doc.getElementBoundaries(element)
+        });
+    };
+
+    this.hover = function (element) {
+        this.editor.trigger('selectable.hovered.on', {
+            element   : element,
+            boundaries: this.editor.doc.getElementBoundaries(element)
         });
     };
 

@@ -920,7 +920,7 @@ vibu.blocks.block('core/text', function (url, editor) {
         frameworks: [ 'bootstrap-4' ],
         fields: {
             block: [ 'margin' ],
-            text: [ 'text', 'margin' ]
+            text: [ 'wysiwyg', 'margin' ]
         }
     };
 });
@@ -941,8 +941,8 @@ vibu.blocks.block('core/text/col-6-6', function (url, editor) {
         frameworks: [ 'bootstrap-4' ],
         fields: {
             block: [ 'margin' ],
-            text1: [ 'text', 'margin' ],
-            text2: [ 'text', 'margin' ],
+            text1: [ 'wysiwyg', 'margin' ],
+            text2: [ 'wysiwyg', 'margin' ],
         }
     };
 });
@@ -966,9 +966,9 @@ vibu.blocks.block('core/text/col-4-4-4', function (url, editor) {
         frameworks: [ 'bootstrap-4' ],
         fields: {
             block: [ 'margin' ],
-            text1: [ 'text', 'margin' ],
-            text2: [ 'text', 'margin' ],
-            text3: [ 'text', 'margin' ],
+            text1: [ 'wysiwyg', 'margin' ],
+            text2: [ 'wysiwyg', 'margin' ],
+            text3: [ 'wysiwyg', 'margin' ],
         }
     };
 });
@@ -995,10 +995,10 @@ vibu.blocks.block('core/text/col-3-3-3-3', function (url, editor) {
         frameworks: [ 'bootstrap-4' ],
         fields: {
             block: [ 'margin' ],
-            text1: [ 'text', 'margin' ],
-            text2: [ 'text', 'margin' ],
-            text3: [ 'text', 'margin' ],
-            text4: [ 'text', 'margin' ],
+            text1: [ 'wysiwyg', 'margin' ],
+            text2: [ 'wysiwyg', 'margin' ],
+            text3: [ 'wysiwyg', 'margin' ],
+            text4: [ 'wysiwyg', 'margin' ],
         }
     };
 });
@@ -1105,7 +1105,7 @@ vibu.blocks.block('core/faq', function (url, editor) {
         fields: {
             block: [ 'margin' ],
             title: [ 'text' ],
-            content: [ 'text' ],
+            content: [ 'wysiwyg' ],
         }
     };
 });

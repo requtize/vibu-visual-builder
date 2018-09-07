@@ -8,12 +8,30 @@ vibu.editorText = function (editor) {
         let self = this;
 
         this.editor.on('blocks.block', function (params) {
-            let fields = params.block.getFieldsByEditable('text');
+            let textFields = params.block.getFieldsByEditable('text');
 
-            for(let i in fields)
+            for(let i in textFields)
             {
                 params.node.find('[vibu-field=' + i + ']').each(function () {
-                    self.createEditor($(this));
+                    self.createEditor($(this), 'text');
+                });
+            }
+
+            let textInlineFields = params.block.getFieldsByEditable('text-inline');
+
+            for(let i in textInlineFields)
+            {
+                params.node.find('[vibu-field=' + i + ']').each(function () {
+                    self.createEditor($(this), 'text-inline');
+                });
+            }
+
+            let wysiwygFields = params.block.getFieldsByEditable('wysiwyg');
+
+            for(let i in wysiwygFields)
+            {
+                params.node.find('[vibu-field=' + i + ']').each(function () {
+                    self.createEditor($(this), 'wysiwyg');
                 });
             }
         });
@@ -39,10 +57,10 @@ vibu.editorText = function (editor) {
 
     this.load = function (onLoad) {};
 
-    this.createEditor = function (element) {
+    this.createEditor = function (element, mode) {
         let self = this;
 
-        let editor = new vibu.editorText.Editor(this.editor, element);
+        let editor = new vibu.editorText.Editor(this.editor, element, mode);
         editor.create();
 
         editor.eventDispatcher.on('element.update', function () {
@@ -79,6 +97,7 @@ vibu.editorText = function (editor) {
             editor: this.enabledEditor
         });
 
+        this.editor.selectable.select(this.enabledEditor.getElement());
         this.enabledEditor = null;
     };
 
@@ -107,9 +126,10 @@ vibu.editorText = function (editor) {
     };
 };
 
-vibu.editorText.Editor = function (editor, element) {
+vibu.editorText.Editor = function (editor, element, mode) {
     this.editor  = editor;
     this.element = element;
+    this.mode    = mode;
     this.toolbar = null;
     this.window  = editor.canvas.getWindow();
     this.eventDispatcher = null;
@@ -162,11 +182,18 @@ vibu.editorText.Editor = function (editor, element) {
         });
 
         this.toolbar = $('<div class="vibu-texteditor-toolbar vibu-hidden">\
-            <div vibu-texteditor-action="bold">B</div>\
-            <div vibu-texteditor-action="italic">I</div>\
-            <div vibu-texteditor-action="strike">S</div>\
             <div vibu-texteditor-action="save">OK</div>\
         </div>');
+
+        if(this.mode != 'text')
+        {
+            this.toolbar.prepend('\
+                <div vibu-texteditor-action="bold">B</div>\
+                <div vibu-texteditor-action="italic">I</div>\
+                <div vibu-texteditor-action="strike">S</div>\
+            ');
+        }
+
         this.toolbar.appendTo(this.editor.getNode().find('.vibu-canvas-device-faker'));
         this.toolbar.click(function (e) {
             e.stopPropagation();
@@ -191,6 +218,10 @@ vibu.editorText.Editor = function (editor, element) {
 
             self.editor.canvas.getWindow().focus();
         });
+    };
+
+    this.getElement = function () {
+        return this.element;
     };
 
     this.enable = function () {
@@ -247,6 +278,16 @@ vibu.editorText.Editor = function (editor, element) {
  * module removes all editables from field when attached controls
  * does not exists.
  */
+// text - only text edition, without any edit options
 vibu.styles.control('text', function () {
+    return {};
+});
+// text-inline - text with only inline edit options, like bold, strike,
+// but without formats, links etc.
+vibu.styles.control('text-inline', function () {
+    return {};
+});
+// wysiwyg - Full editor, with all possible edit options.
+vibu.styles.control('wysiwyg', function () {
     return {};
 });
