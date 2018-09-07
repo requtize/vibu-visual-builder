@@ -23,7 +23,10 @@ vibu.editorText = function (editor) {
         });
 
         this.editor.on('element.action.edit', function (data) {
-            self.enableEditor(self.getAttachedEditor(data.element));
+            let editor = self.getAttachedEditor(data.element);
+
+            if(editor)
+                self.enableEditor(editor);
         });
 
         this.editor.on('element.actionsbox.show', function (data) {
@@ -31,18 +34,6 @@ vibu.editorText = function (editor) {
                 data.actionsbox.find('[vibu-element-action="edit"]').show();
             else
                 data.actionsbox.find('[vibu-element-action="edit"]').hide();
-        });
-
-        this.editor.on('canvas.click', function (data) {
-            if(self.enabledEditor === null)
-                return;
-
-            let editable = $(data.event.target).closest('[contenteditable]');
-
-            if(editable.length === 0)
-            {
-                self.disableEditor();
-            }
         });
     };
 
@@ -64,6 +55,8 @@ vibu.editorText = function (editor) {
 
     this.enableEditor = function (editor) {
         this.editor.trigger('element.actionsbox.disable');
+        this.editor.selectable.disable();
+        // @todo - Add disable/enable movable and droppable
 
         editor.enable().focus();
         this.enabledEditor = editor;
@@ -75,6 +68,8 @@ vibu.editorText = function (editor) {
 
     this.disableEditor = function () {
         this.editor.trigger('element.actionsbox.enable');
+        this.editor.selectable.enable();
+        // @todo - Add disable/enable movable and droppable
 
         this.enabledEditor
             .clearSelection()
@@ -170,6 +165,7 @@ vibu.editorText.Editor = function (editor, element) {
             <div vibu-texteditor-action="bold">B</div>\
             <div vibu-texteditor-action="italic">I</div>\
             <div vibu-texteditor-action="strike">S</div>\
+            <div vibu-texteditor-action="save">OK</div>\
         </div>');
         this.toolbar.appendTo(this.editor.getNode().find('.vibu-canvas-device-faker'));
         this.toolbar.click(function (e) {
@@ -187,6 +183,9 @@ vibu.editorText.Editor = function (editor, element) {
                     break;
                 case 'strike':
                     elementDocument.execCommand('strikeThrough', false, null);
+                    break;
+                case 'save':
+                    self.editor.editorText.disableEditor();
                     break;
             }
 

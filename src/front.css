@@ -1,8 +1,6 @@
-.vibu-block {padding:10px 0;}
-
-body/*.vibu-show-blocks-guides*/ .vibu-block {position:relative;z-index:1;padding:20px 0;}
-body/*.vibu-show-blocks-guides*/ .vibu-block:before {position:absolute;left:0;top:0;z-index:100;display:block;padding:4px 9px;font-size:11px;color:#000;background-color:#fff;opacity:.7;content:attr(vibu-block);pointer-events:none}
-body/*.vibu-show-blocks-guides*/ .vibu-block:after {content:"";display:block;position:absolute;left:0;top:0;right:0;bottom:0;z-index:200;pointer-events:none;border:1px dashed #ddd;}
+body.vibu-show-blocks-guides .vibu-block {position:relative;z-index:1;padding:20px 0;}
+body.vibu-show-blocks-guides .vibu-block:before {position:absolute;left:0;top:0;z-index:100;display:block;padding:4px 9px;font-size:11px;color:#000;background-color:#fff;opacity:.7;content:attr(vibu-block);pointer-events:none}
+body.vibu-show-blocks-guides .vibu-block:after {content:"";display:block;position:absolute;left:0;top:0;right:0;bottom:0;z-index:200;pointer-events:none;border:1px dashed #ddd;}
 
 img {max-width:100%}
 

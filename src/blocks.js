@@ -1009,7 +1009,7 @@ vibu.blocks.block('core/image', function (url, editor) {
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/images-single.jpg',
         html : '<div class="row">\
             <div class="col text-center">\
-                <img src="http://via.placeholder.com/1400x100&text=VIBU" vibu-field="image" />\
+                <img src="http://via.placeholder.com/1400x100&text=VIBU" vibu-field="image" class="mb-3" />\
             </div>\
         </div>',
         frameworks: [ 'bootstrap-4' ],
@@ -1025,10 +1025,10 @@ vibu.blocks.block('core/image/col-6-6', function (url, editor) {
         group: 'images',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/images-6-6.jpg',
         html : '<div class="row">\
-            <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-0">\
+            <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6 text-center mb-3">\
                 <img src="http://via.placeholder.com/660x100&text=VIBU" vibu-field="image1" />\
             </div>\
-            <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6 text-center">\
+            <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6 text-center mb-3">\
                 <img src="http://via.placeholder.com/660x100&text=VIBU" vibu-field="image2" />\
             </div>\
         </div>',
@@ -1046,13 +1046,13 @@ vibu.blocks.block('core/image/col-4-4-4', function (url, editor) {
         group: 'images',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/images-4-4-4.jpg',
         html : '<div class="row">\
-            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-12 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-2">\
+            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-12 text-center mb-3">\
                 <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-field="image1" />\
             </div>\
-            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-2">\
+            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6 text-center mb-3">\
                 <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-field="image2" />\
             </div>\
-            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6 text-center">\
+            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6 text-center mb-3">\
                 <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-field="image3" />\
             </div>\
         </div>',
