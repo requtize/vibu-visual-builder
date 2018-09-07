@@ -2,6 +2,7 @@ vibu.editorText = function (editor) {
     this.editor = editor;
 
     this.editors = [];
+    this.enabledEditor = null;
 
     this.init = function () {
         let self = this;
@@ -11,7 +12,7 @@ vibu.editorText = function (editor) {
 
             for(let i in fields)
             {
-                params.node.find('[vibu-editable=' + i + ']').attr('vibu-selectable', true).each(function () {
+                params.node.find('[vibu-field=' + i + ']').each(function () {
                     self.createEditor($(this));
                 });
             }
@@ -19,6 +20,29 @@ vibu.editorText = function (editor) {
 
         this.editor.on('canvas.append-content', function () {
             //self.editor.doc.getCanvasContent().find('.')
+        });
+
+        this.editor.on('element.action.edit', function (data) {
+            self.enableEditor(self.getAttachedEditor(data.element));
+        });
+
+        this.editor.on('element.actionsbox.show', function (data) {
+            if(self.hasEditor(data.element))
+                data.actionsbox.find('[vibu-element-action="edit"]').show();
+            else
+                data.actionsbox.find('[vibu-element-action="edit"]').hide();
+        });
+
+        this.editor.on('canvas.click', function (data) {
+            if(self.enabledEditor === null)
+                return;
+
+            let editable = $(data.event.target).closest('[contenteditable]');
+
+            if(editable.length === 0)
+            {
+                self.disableEditor();
+            }
         });
     };
 
@@ -37,12 +61,56 @@ vibu.editorText = function (editor) {
 
         this.editors.push(editor);
     };
+
+    this.enableEditor = function (editor) {
+        editor.enable().focus();
+        this.enabledEditor = editor;
+
+        this.editor.trigger('text-editor.enabled', {
+            editor: editor
+        });
+    };
+
+    this.disableEditor = function () {
+        this.enabledEditor
+            .clearSelection()
+            .disable();
+
+        this.editor.trigger('text-editor.disabled', {
+            editor: this.enabledEditor
+        });
+
+        this.enabledEditor = null;
+    };
+
+    this.hasEditor = function (element) {
+        for(let i = 0; i < this.editors.length; i++)
+        {
+            if(this.editors[i].isAttachedTo(element))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    this.getAttachedEditor = function (element) {
+        for(let i = 0; i < this.editors.length; i++)
+        {
+            if(this.editors[i].isAttachedTo(element))
+            {
+                return this.editors[i];
+            }
+        }
+
+        return null;
+    };
 };
 
 vibu.editorText.Editor = function (element, win) {
     this.element = element;
     this.window  = win;
-    this.editor  = null;
     this.eventDispatcher = null;
 
     this.create = function () {
@@ -51,7 +119,7 @@ vibu.editorText.Editor = function (element, win) {
 
         this.eventDispatcher = new vibu.eventDispatcher;
 
-        this.element.attr('contenteditable', true).keydown(function (e) {
+        this.element.keydown(function (e) {
             // Prevent tab (keyCode = 9) key press
             // (skip to next editable element/editor).
             if(e.keyCode === 9)
@@ -61,13 +129,16 @@ vibu.editorText.Editor = function (element, win) {
 
             // Prevent create new element (div, p) on enter.
             // Instead of add line breaker.
-            if( ( e.keyCode || e.witch ) == 13 ) {
+            if((e.keyCode || e.witch) == 13)
+            {
                 e.preventDefault();
 
-                if( navigator.userAgent.indexOf("msie") > 0 ) {
+                if(navigator.userAgent.indexOf("msie") > 0)
+                {
                     insertHtml('<br />');
                 }
-                else {
+                else
+                {
                   var selection = self.window.getSelection(),
                   range = selection.getRangeAt(0),
                   br    = elementDocument.createElement('br');
@@ -90,6 +161,30 @@ vibu.editorText.Editor = function (element, win) {
         });
     };
 
+    this.enable = function () {
+        this.element.attr('contenteditable', true);
+
+        return this;
+    };
+
+    this.disable = function () {
+        this.element.removeAttr('contenteditable');
+
+        return this;
+    };
+
+    this.focus = function () {
+        this.element.trigger('focus');
+
+        return this;
+    };
+
+    this.clearSelection = function () {
+        this.window.getSelection().removeAllRanges();
+
+        return this;
+    };
+
     this.detectEmptyAndFixHeight = function () {
         let html = this.element.html().replace(/<br[^>]*>/gi, '');
 
@@ -97,5 +192,9 @@ vibu.editorText.Editor = function (element, win) {
             this.element.attr('vibu-editor-text-empty', true);
         else
             this.element.removeAttr('vibu-editor-text-empty');
+    };
+
+    this.isAttachedTo = function (element) {
+        return this.element.is(element);
     };
 };

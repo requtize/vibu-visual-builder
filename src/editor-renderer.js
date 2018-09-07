@@ -54,6 +54,7 @@ vibu.editorRenderer = function (editor) {
         }
 
         this.editor.options.contentCss.push(this.editor.createAssetPath('/front.css'));
+        this.editor.options.contentCss.push(this.editor.createAssetPath('/canvas.css'));
 
         this.editor.getNode().append(container);
 
@@ -76,21 +77,17 @@ vibu.editorRenderer = function (editor) {
 
             head.append('<meta charset="utf-8">');
             head.append('<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">');
-            head.append('<style>body:hover,\
-            body *:hover {cursor:default !important;}\
-            body *[vibu-selectable]:hover,\
-            body *[vibu-selectable] *:hover {cursor:pointer !important;}\
-            body.vibu-movable-active *[vibu-selectable]:hover,\
-            body.vibu-movable-active *[vibu-selectable] *:hover {cursor:move !important;}\
-            body.vibu-movable-active .vibu-movable-placeholder:hover {cursor:move !important;}\
-            .vibu-prevent-scroll {overflow:hidden !important;}\
-            [vibu-editor-text-empty] {min-height:12px;min-width:20px;max-width:100%;display:inline-block;}\
-            [contenteditable]:focus {outline:none !important}\
-            body .vibu-block-movable {position:absolute;z-index:1000;left:0;top:0;right:0;background-color:#fff !important;pointer-events:none;}\
-            </style>');
 
             iframe.addClass('vibu-loaded');
             onLoad();
+
+            self.editor.trigger('canvas.ready');
+
+            body.on('click', function (e) {
+                self.editor.trigger('canvas.click', {
+                    event: e
+                });
+            });
         });
     };
 };
@@ -116,9 +113,10 @@ vibu.editorRenderer.container = '<div class="vibu-container">'
         + '<div class="vibu-canvas">'
             + '<div class="vibu-canvas-device-faker" data-device="desktop">'
                 + '<div class="vibu-element-boundaries vibu-element-boundaries-active vibu-hidden">'
-                    + '<div class="vibu-node-name">h2</div>'
+                    + '<div class="vibu-node-name"></div>'
                 + '</div>'
                 + '<div class="vibu-element-boundaries vibu-element-boundaries-hover vibu-hidden"></div>'
+                + '<div class="vibu-element-actions vibu-hidden"></div>'
                 + '<iframe class="vibu-iframe"></iframe>'
             + '</div>'
         + '</div>'

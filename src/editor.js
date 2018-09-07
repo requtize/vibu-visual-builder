@@ -4,19 +4,18 @@ vibu.editor = function (selector, options) {
     this.eventDispatcher = null;
     this.options   = options;
 
-    this.loader    = null;
-    this.renderer  = null;
+    this.loader        = null;
+    this.renderer      = null;
     this.messengerRoot = null;
-    this.resizer = null;
-    this.selectable = null;
+    this.resizer       = null;
+    this.selectable    = null;
     this.heightWatcher = null;
-    this.doc = null;
-    //this.parser = null;
-    this.editorText = null;
-    this.ui     = null;
-    this.styles = null;
-    this.blocks = null;
-    this.canvas = null;
+    this.doc           = null;
+    this.editorText    = null;
+    this.ui            = null;
+    this.styles        = null;
+    this.blocks        = null;
+    this.canvas        = null;
 
     this.init = function () {
         let self = this;
@@ -30,7 +29,6 @@ vibu.editor = function (selector, options) {
         this.resizer    = new vibu.resizer(this);
         this.selectable = new vibu.selectable(this);
         this.doc        = new vibu.doc(this);
-        //this.parser     = new vibu.parser(this);
         this.editorText = new vibu.editorText(this);
         this.ui         = new vibu.ui(this);
         this.styles     = new vibu.styles(this);
@@ -63,7 +61,6 @@ vibu.editor = function (selector, options) {
         this.editorText.load(this.loader);
 
         /*this.on('content-ready', function () {
-            //self.parser.parse(self.doc.getCanvasContent());
             self.trigger('editor.created');
 
             self.setContent(self.options.contents);
@@ -107,6 +104,10 @@ vibu.editor = function (selector, options) {
 
     this.onReady = function (handler, priority) {
         this.eventDispatcher.on('editor.ready', handler, priority);
+    };
+
+    this.onCreated = function (handler, priority) {
+        this.eventDispatcher.on('editor.created', handler, priority);
     };
 
     this.trigger = function (event, params) {

@@ -9,7 +9,6 @@ vibu.canvas = function (editor) {
         this.editor.onReady(function () {
             self.iframe = self.editor.getNode().find('iframe');
             self.body   = self.iframe.contents().find('body');
-            self.window = self.iframe.contents().find('body');
 
             self.preventLinksClick();
         }, -1000);
