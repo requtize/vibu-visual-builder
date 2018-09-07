@@ -64,6 +64,12 @@
             .vibu-element-actions > div {background-color:#0088cc;display:inline-block;padding:0 8px;height:20px;line-height:20px;color:#fff;font-size:12px;border-left:1px solid #fff;transition:.12s all}
             .vibu-element-actions > div:first-child {border-left:none}
             .vibu-element-actions > div:hover {cursor:pointer;background-color:#0069d9;}
+            .vibu-element-actions.vibu-hidden {left:0 !important;top:-10000px !important;display:block !important;}
+
+            .vibu-texteditor-toolbar {position:absolute;top:0;z-index:10000;font-size:0;height:20px;transform:translateY(-100%);white-space:nowrap;overflow:hidden;border-radius:3px 3px 0 0;background-color:#0088cc;}
+            .vibu-texteditor-toolbar > div {background-color:#0088cc;display:inline-block;padding:0 8px;height:20px;line-height:20px;color:#fff;font-size:12px;border-left:1px solid #fff;transition:.12s all}
+            .vibu-texteditor-toolbar > div:first-child {border-left:none}
+            .vibu-texteditor-toolbar > div:hover {cursor:pointer;background-color:#0069d9;}
 
             .vibu-editor-placement-inline {max-width:100%;width:800px;margin:100px auto;}
 
@@ -290,12 +296,12 @@
         <script src="../src/selectable.js"></script>
         <script src="../src/canvas-height-watcher.js"></script>
         <script src="../src/doc.js"></script>
-        <script src="../src/editor-text.js"></script>
         <script src="../src/ui.js"></script>
         <script src="../src/styles.js"></script>
         <script src="../src/blocks.js"></script>
         <script src="../src/editor.js"></script>
         <script src="../src/canvas.js"></script>
+        <script src="../src/editor-text.js"></script>
         <script src="../src/loader.js"></script>
         <script>
             $(function () {

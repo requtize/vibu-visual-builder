@@ -49,14 +49,26 @@ vibu.styles = function (editor) {
 
         let sidebar = this.editor.doc.getStyles();
 
-        this.loadControlHtml(control.template, function (html) {
+        if(control.html === null && control.template)
+        {
+            this.loadControlHtml(control.template, function (html) {
+                control.name = name;
+                control.html = self.createControlsNode(html);
+
+                self.controls.push(control);
+
+                onLoad();
+            });
+        }
+        else
+        {
             control.name = name;
-            control.html = self.createControlsNode(html);
+            control.html = self.createControlsNode(control.html);
 
             self.controls.push(control);
 
             onLoad();
-        });
+        }
     };
 
     this.appendControlsToDocument = function () {
@@ -158,7 +170,7 @@ vibu.styles = function (editor) {
     };
 
     this.createControlsNode = function (html) {
-        return $('<div class="vibu-hidden">' + html + '</div>');
+        return $('<div class="vibu-hidden">' + (html ? html : '') + '</div>');
     };
 };
 
@@ -267,6 +279,31 @@ vibu.styles.control('html-class', function (url, editor) {
 vibu.styles.control('html-id', function (url, editor) {
     return {
         template: url + '/controls/html-id.html',
+    };
+});
+
+vibu.styles.control('container', function (url, editor) {
+    return {
+        template: url + '/controls/container.html',
+        set: function (control, element) {
+            let container = element.find('[vibu-block-container]');
+
+            container
+                .removeClass('vibu-container-full-width')
+                .removeClass('vibu-container-wide')
+                .addClass(control.find('[vibu-control]').val());
+        },
+        get: function (control, element) {
+            let container = element.find('[vibu-block-container]');
+            let classname = null;
+
+            if(container.hasClass('vibu-container-full-width'))
+                classname = 'vibu-container-full-width';
+            if(container.hasClass('vibu-container-wide'))
+                classname = 'vibu-container-wide';
+
+            control.find('[vibu-control]').val(classname);
+        }
     };
 });
 

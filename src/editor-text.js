@@ -51,7 +51,7 @@ vibu.editorText = function (editor) {
     this.createEditor = function (element) {
         let self = this;
 
-        let editor = new vibu.editorText.Editor(element, this.editor.canvas.getWindow());
+        let editor = new vibu.editorText.Editor(this.editor, element);
         editor.create();
 
         editor.eventDispatcher.on('element.update', function () {
@@ -63,6 +63,8 @@ vibu.editorText = function (editor) {
     };
 
     this.enableEditor = function (editor) {
+        this.editor.trigger('element.actionsbox.disable');
+
         editor.enable().focus();
         this.enabledEditor = editor;
 
@@ -72,6 +74,8 @@ vibu.editorText = function (editor) {
     };
 
     this.disableEditor = function () {
+        this.editor.trigger('element.actionsbox.enable');
+
         this.enabledEditor
             .clearSelection()
             .disable();
@@ -108,9 +112,11 @@ vibu.editorText = function (editor) {
     };
 };
 
-vibu.editorText.Editor = function (element, win) {
+vibu.editorText.Editor = function (editor, element) {
+    this.editor  = editor;
     this.element = element;
-    this.window  = win;
+    this.toolbar = null;
+    this.window  = editor.canvas.getWindow();
     this.eventDispatcher = null;
 
     this.create = function () {
@@ -159,16 +165,52 @@ vibu.editorText.Editor = function (element, win) {
             self.detectEmptyAndFixHeight();
             self.eventDispatcher.trigger('element.update');
         });
+
+        this.toolbar = $('<div class="vibu-texteditor-toolbar vibu-hidden">\
+            <div vibu-texteditor-action="bold">B</div>\
+            <div vibu-texteditor-action="italic">I</div>\
+            <div vibu-texteditor-action="strike">S</div>\
+        </div>');
+        this.toolbar.appendTo(this.editor.getNode().find('.vibu-canvas-device-faker'));
+        this.toolbar.click(function (e) {
+            e.stopPropagation();
+        });
+
+        this.toolbar.on('click', '[vibu-texteditor-action]', function () {
+            switch($(this).attr('vibu-texteditor-action'))
+            {
+                case 'bold':
+                    elementDocument.execCommand('bold', false, null);
+                    break;
+                case 'italic':
+                    elementDocument.execCommand('italic', false, null);
+                    break;
+                case 'strike':
+                    elementDocument.execCommand('strikeThrough', false, null);
+                    break;
+            }
+
+            self.editor.canvas.getWindow().focus();
+        });
     };
 
     this.enable = function () {
         this.element.attr('contenteditable', true);
+        this.toolbar.removeClass('vibu-hidden');
+
+        let boundaries = this.editor.doc.getElementBoundaries(this.element);
+
+        this.toolbar.css({
+            left: boundaries.left,
+            top:  boundaries.top - boundaries.scrollTop
+        });
 
         return this;
     };
 
     this.disable = function () {
         this.element.removeAttr('contenteditable');
+        this.toolbar.addClass('vibu-hidden');
 
         return this;
     };
@@ -198,3 +240,14 @@ vibu.editorText.Editor = function (element, win) {
         return this.element.is(element);
     };
 };
+
+
+/**
+ * Empty text style control is required to allow elements to be edited by
+ * text editor. Text editor check if element has editable 'text', but blocks
+ * module removes all editables from field when attached controls
+ * does not exists.
+ */
+vibu.styles.control('text', function () {
+    return {};
+});

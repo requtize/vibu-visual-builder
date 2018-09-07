@@ -155,10 +155,13 @@ vibu.selectable = function (editor) {
             if(self.disabled)
                 return;
 
-            self.editor.trigger('selectable.selected.new', {
-                element   : element,
-                boundaries: doc.getElementBoundaries(element)
-            });
+            if(! self.selectedElement || self.selectedElement.is(element) === false)
+            {
+                self.editor.trigger('selectable.selected.new', {
+                    element   : element,
+                    boundaries: doc.getElementBoundaries(element)
+                });
+            }
 
             // Propagation is stopped, so we have to manually call event in editors dispatcher.
             self.editor.trigger('canvas.click', {

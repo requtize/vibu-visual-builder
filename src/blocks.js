@@ -4,6 +4,7 @@ vibu.blocks = function (editor) {
     this.groups = [];
     this.addable = null;
     this.movable = null;
+    this.actionsBoxDisabled = false;
 
     this.init = function () {
         let self = this;
@@ -69,13 +70,16 @@ vibu.blocks = function (editor) {
         this.editor.on('selectable.selected.new', function (data) {
             let actions = self.editor.getNode().find('.vibu-element-actions');
 
+            // We can show actionsbox only if is enabled
+            if(self.actionsBoxDisabled === false)
+                actions.removeClass('vibu-hidden');
+
             // Here anyone can modify actions buttons visibility.
             self.editor.trigger('element.actionsbox.show', {
                 actionsbox: actions,
                 element   : data.element
             });
 
-            actions.removeClass('vibu-hidden');
             actions.css({
                 left: data.boundaries.left + data.boundaries.width - actions.width(),
                 top:  data.boundaries.top - data.boundaries.scrollTop
@@ -143,6 +147,18 @@ vibu.blocks = function (editor) {
             });
         });
 
+        this.editor.on('element.actionsbox.disable', function () {
+            self.actionsBoxDisabled = true;
+
+            self.editor.getNode().find('.vibu-element-actions').addClass('vibu-hidden');
+        });
+
+        this.editor.on('element.actionsbox.enable', function () {
+            self.actionsBoxDisabled = false;
+
+            self.editor.getNode().find('.vibu-element-actions').removeClass('vibu-hidden');
+        });
+
         this.editor.onReady(function () {
             // Body canvas setter must be in this line!!!
             body = self.editor.canvas.getBody();
@@ -198,14 +214,21 @@ vibu.blocks = function (editor) {
             {
                 if(styles.controlExists(editables[i]))
                 {
-                    newEditables.push(editables[i])
+                    newEditables.push(editables[i]);
                 }
+            }
+
+            // For whole block we always add special styles.
+            if(field == 'block')
+            {
+                newEditables.push('container');
+                newEditables.push('block');
             }
 
             if(newEditables.length === 0)
                 return;
 
-            block[field] = newEditables;
+            block.fields[field] = newEditables;
 
             element.attr('vibu-selectable', true);
         });
@@ -236,6 +259,11 @@ vibu.blocks = function (editor) {
         if(! block.html)
             return;
 
+        if(block.wrapHtmlDefault)
+        {
+            block.html = '<div class="vibu-block" vibu-block="' + block.name + '"><div class="container vibu-container-wide" vibu-block-container>' + block.html + '</div></div>';
+        }
+
         // If block does not contain any frameworks, that we add it for everyone.
         // This is caused to make developers less writing while creating dedicated blocks.
         if(block.frameworks.length == 0)
@@ -265,6 +293,9 @@ vibu.blocks = function (editor) {
         group.name = name;
 
         this.groups.push(group);
+        this.groups.sort(function (a, b) {
+            return b.priority - a.priority;
+        });
     };
 
     this.addBlockIcon = function (block) {
@@ -786,6 +817,7 @@ vibu.blocks.block.defaults = {
     setters : {},
     template: null,
     html    : null,
+    wrapHtmlDefault: true,
     frameworks: [],
     fieldExists: function (name) {
         return this.fields[name] ? true : false;
@@ -810,7 +842,8 @@ vibu.blocks.block.defaults = {
 
 vibu.blocks.group.defaults = {
     name: null,
-    label: null
+    label: null,
+    priority: 0
 };
 
 
@@ -839,14 +872,14 @@ vibu.blocks.group.defaults = {
 vibu.blocks.group('default', function (url, editor) {
     return { label: 'Ogólne' };
 });
-vibu.blocks.group('text', function (url, editor) {
-    return { label: 'Tekst' };
-});
 vibu.blocks.group('headline', function (url, editor) {
     return { label: 'Nagłówki' };
 });
-vibu.blocks.group('features', function (url, editor) {
-    return { label: 'Cechy' };
+vibu.blocks.group('text', function (url, editor) {
+    return { label: 'Tekst' };
+});
+vibu.blocks.group('text-and-images', function (url, editor) {
+    return { label: 'Text + Zdjęcia' };
 });
 vibu.blocks.group('images', function (url, editor) {
     return { label: 'Zdjęcia' };
@@ -854,11 +887,11 @@ vibu.blocks.group('images', function (url, editor) {
 vibu.blocks.group('galleries', function (url, editor) {
     return { label: 'Galerie zdjęć' };
 });
-vibu.blocks.group('text-and-images', function (url, editor) {
-    return { label: 'Text + Zdjęcia' };
-});
 vibu.blocks.group('video', function (url, editor) {
     return { label: 'Video' };
+});
+vibu.blocks.group('features', function (url, editor) {
+    return { label: 'Cechy' };
 });
 /**
  * UL, OL, kilka styli danej listy.
@@ -879,13 +912,9 @@ vibu.blocks.block('core/text', function (url, editor) {
         group: 'text',
         label: 'Tekst - 1 kolumna',
         icon : 'http://localhost/vibu-visual-builder/dist/test-block-images/grid-12.jpg',
-        html : '<div class="vibu-block" vibu-block="core/text">\
-            <div class="vibu-container container-fluid" vibu-block-container>\
-                <div class="row">\
-                    <div class="col">\
-                        <p vibu-field="text">Lorem ipsum...</p>\
-                    </div>\
-                </div>\
+        html : '<div class="row">\
+            <div class="col">\
+                <p vibu-field="text">Lorem ipsum...</p>\
             </div>\
         </div>',
         frameworks: [ 'bootstrap-4' ],
@@ -901,16 +930,12 @@ vibu.blocks.block('core/text/col-6-6', function (url, editor) {
         group: 'text',
         label: 'Tekst - 2 kolumny',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/grid-6-6.jpg',
-        html: '<div class="vibu-block" vibu-block="core/text/col-6-6">\
-            <div class="vibu-container container-fluid" vibu-block-container>\
-                <div class="row">\
-                    <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6">\
-                        <p vibu-field="text1">Lorem ipsum...</p>\
-                    </div>\
-                    <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6">\
-                        <p vibu-field="text2">Lorem ipsum...</p>\
-                    </div>\
-                </div>\
+        html: '<div class="row">\
+            <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6">\
+                <p vibu-field="text1">Lorem ipsum...</p>\
+            </div>\
+            <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6">\
+                <p vibu-field="text2">Lorem ipsum...</p>\
             </div>\
         </div>',
         frameworks: [ 'bootstrap-4' ],
@@ -927,19 +952,15 @@ vibu.blocks.block('core/text/col-4-4-4', function (url, editor) {
         group: 'text',
         label: 'Tekst - 3 kolumny',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/grid-4-4-4.jpg',
-        html: '<div class="vibu-block" vibu-block="core/text/col-4-4-4">\
-            <div class="vibu-container container-fluid" vibu-block-container>\
-                <div class="row">\
-                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-12">\
-                        <p vibu-field="text1">Lorem ipsum...</p>\
-                    </div>\
-                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6">\
-                        <p vibu-field="text2">Lorem ipsum...</p>\
-                    </div>\
-                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6">\
-                        <p vibu-field="text3">Lorem ipsum...</p>\
-                    </div>\
-                </div>\
+        html: '<div class="row">\
+            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-12">\
+                <p vibu-field="text1">Lorem ipsum...</p>\
+            </div>\
+            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6">\
+                <p vibu-field="text2">Lorem ipsum...</p>\
+            </div>\
+            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6">\
+                <p vibu-field="text3">Lorem ipsum...</p>\
             </div>\
         </div>',
         frameworks: [ 'bootstrap-4' ],
@@ -957,22 +978,18 @@ vibu.blocks.block('core/text/col-3-3-3-3', function (url, editor) {
         group: 'text',
         label: 'Tekst - 4 kolumny',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/grid-3-3-3-3.jpg',
-        html: '<div class="vibu-block" vibu-block="core/text/col-3-3-3-3">\
-            <div class="vibu-container container-fluid" vibu-block-container>\
-                <div class="row">\
-                    <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
-                        <p vibu-field="text1">Lorem ipsum...</p>\
-                    </div>\
-                    <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
-                        <p vibu-field="text2">Lorem ipsum...</p>\
-                    </div>\
-                    <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
-                        <p vibu-field="text3">Lorem ipsum...</p>\
-                    </div>\
-                    <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
-                        <p vibu-field="text4">Lorem ipsum...</p>\
-                    </div>\
-                </div>\
+        html: '<div class="row">\
+            <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
+                <p vibu-field="text1">Lorem ipsum...</p>\
+            </div>\
+            <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
+                <p vibu-field="text2">Lorem ipsum...</p>\
+            </div>\
+            <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
+                <p vibu-field="text3">Lorem ipsum...</p>\
+            </div>\
+            <div class="col-12 col-xl-3 col-lg-3 col-md-6 col-sm-6">\
+                <p vibu-field="text4">Lorem ipsum...</p>\
             </div>\
         </div>',
         frameworks: [ 'bootstrap-4' ],
@@ -990,13 +1007,9 @@ vibu.blocks.block('core/image', function (url, editor) {
     return {
         group: 'images',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/images-single.jpg',
-        html : '<div class="vibu-block" vibu-block="core/image">\
-            <div class="vibu-container container-fluid" vibu-block-container>\
-                <div class="row">\
-                    <div class="col text-center">\
-                        <img src="http://via.placeholder.com/1400x100&text=VIBU" vibu-field="image" />\
-                    </div>\
-                </div>\
+        html : '<div class="row">\
+            <div class="col text-center">\
+                <img src="http://via.placeholder.com/1400x100&text=VIBU" vibu-field="image" />\
             </div>\
         </div>',
         frameworks: [ 'bootstrap-4' ],
@@ -1011,16 +1024,12 @@ vibu.blocks.block('core/image/col-6-6', function (url, editor) {
     return {
         group: 'images',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/images-6-6.jpg',
-        html : '<div class="vibu-block" vibu-block="core/image/col-6-6">\
-            <div class="vibu-container container-fluid" vibu-block-container>\
-                <div class="row">\
-                    <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-0">\
-                        <img src="http://via.placeholder.com/660x100&text=VIBU" vibu-field="image1" />\
-                    </div>\
-                    <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6 text-center">\
-                        <img src="http://via.placeholder.com/660x100&text=VIBU" vibu-field="image2" />\
-                    </div>\
-                </div>\
+        html : '<div class="row">\
+            <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-0">\
+                <img src="http://via.placeholder.com/660x100&text=VIBU" vibu-field="image1" />\
+            </div>\
+            <div class="col-12 col-xl-6 col-lg-6 col-md-6 col-sm-6 text-center">\
+                <img src="http://via.placeholder.com/660x100&text=VIBU" vibu-field="image2" />\
             </div>\
         </div>',
         frameworks: [ 'bootstrap-4' ],
@@ -1036,19 +1045,15 @@ vibu.blocks.block('core/image/col-4-4-4', function (url, editor) {
     return {
         group: 'images',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/images-4-4-4.jpg',
-        html : '<div class="vibu-block" vibu-block="core/image/col-4-4-4">\
-            <div class="vibu-container container-fluid" vibu-block-container>\
-                <div class="row">\
-                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-12 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-2">\
-                        <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-field="image1" />\
-                    </div>\
-                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-2">\
-                        <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-field="image2" />\
-                    </div>\
-                    <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6 text-center">\
-                        <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-field="image3" />\
-                    </div>\
-                </div>\
+        html : '<div class="row">\
+            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-12 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-2">\
+                <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-field="image1" />\
+            </div>\
+            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6 text-center mb-2 mb-xl-0 mb-lg-0 mb-md-0 mb-sm-2">\
+                <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-field="image2" />\
+            </div>\
+            <div class="col-12 col-xl-4 col-lg-4 col-md-4 col-sm-6 text-center">\
+                <img src="http://via.placeholder.com/466x100&text=VIBU" vibu-field="image3" />\
             </div>\
         </div>',
         frameworks: [ 'bootstrap-4' ],
@@ -1066,36 +1071,32 @@ vibu.blocks.block('core/faq', function (url, editor) {
         group: 'faqs',
         label: 'FAQ',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/headline-no1.jpg',
-        html: '<div class="vibu-block" vibu-block="core/faq">\
-            <div class="vibu-container container-fluid" vibu-block-container>\
-                <div class="accordion" id="accordionExample" vibu-repeatable>\
-                    <div class="card">\
-                        <div class="card-header py-1 px-1" id="headingOne">\
-                            <h5 class="mb-0">\
-                                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"  vibu-field="title">\
-                                    Collapsible Group Item #1\
-                                </button>\
-                            </h5>\
-                        </div>\
-                        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">\
-                            <div class="card-body">\
-                                <p class="mb-0" vibu-field="content">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven\'t heard of them accusamus labore sustainable VHS.</p>\
-                            </div>\
-                        </div>\
+        html: '<div class="accordion" id="accordionExample" vibu-repeatable>\
+            <div class="card">\
+                <div class="card-header py-1 px-1" id="headingOne">\
+                    <h5 class="mb-0">\
+                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"  vibu-field="title">\
+                            Collapsible Group Item #1\
+                        </button>\
+                    </h5>\
+                </div>\
+                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">\
+                    <div class="card-body">\
+                        <p class="mb-0" vibu-field="content">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven\'t heard of them accusamus labore sustainable VHS.</p>\
                     </div>\
-                    <div class="card" vibu-repeatable-pattern>\
-                        <div class="card-header py-1 px-1" id="headingOne">\
-                            <h5 class="mb-0">\
-                                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"  vibu-field="title">\
-                                    Collapsible Group Item #1\
-                                </button>\
-                            </h5>\
-                        </div>\
-                        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">\
-                            <div class="card-body">\
-                                <p class="mb-0" vibu-field="content">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven\'t heard of them accusamus labore sustainable VHS.</p>\
-                            </div>\
-                        </div>\
+                </div>\
+            </div>\
+            <div class="card" vibu-repeatable-pattern>\
+                <div class="card-header py-1 px-1" id="headingOne">\
+                    <h5 class="mb-0">\
+                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"  vibu-field="title">\
+                            Collapsible Group Item #1\
+                        </button>\
+                    </h5>\
+                </div>\
+                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">\
+                    <div class="card-body">\
+                        <p class="mb-0" vibu-field="content">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven\'t heard of them accusamus labore sustainable VHS.</p>\
                     </div>\
                 </div>\
             </div>\
