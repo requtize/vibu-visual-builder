@@ -11,3 +11,9 @@ body.vibu-movable-active .vibu-movable-placeholder:hover {cursor:move !important
 [vibu-editor-text-empty] {min-height:12px;min-width:20px;max-width:100%;display:inline-block;}
 [contenteditable]:focus {outline:none !important}
 body .vibu-block-movable {position:absolute;z-index:1000;left:0;top:0;right:0;background-color:#fff !important;pointer-events:none;}
+
+.vibu-repeatable-button {position:relative;border-radius:3px;overflow:hidden;min-height:50px;}
+.vibu-repeatable-button-label {position:absolute;left:0;top:0;right:0;bottom:0;z-index:10;background-color:#fff;border:1px solid #ddd;border-radius:3px;transition:.12s all}
+.vibu-repeatable-button-label:hover {cursor:pointer;border-color:#0088cc;background-color:rgba(0,136,204,.2)}
+.vibu-repeatable-button-label > div {display:table;width:100%;height:100%}
+.vibu-repeatable-button-label > div > div {display:table-cell;vertical-align:middle;text-align:center;font-size:14px;color:#000;}

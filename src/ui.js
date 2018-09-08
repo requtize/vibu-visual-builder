@@ -9,6 +9,7 @@ vibu.ui = function (editor) {
             self._modals(self.editor.getNode());
             self._checkboxes(self.editor.getNode());
             self._accordions(self.editor.getNode());
+            self._tooltips(self.editor.getNode());
         });
     };
 
@@ -52,6 +53,23 @@ vibu.ui = function (editor) {
             $(this)
                 .closest('.vibu-accordion-item')
                 .addClass('vibu-accordion-opened');
+        });
+    };
+
+    this._tooltips = function (node) {
+        let tooltip = $('<div class="vibu-tooltip vibu-hidden"></div>');
+
+        node.find('.vibu-container').append(tooltip);
+
+        node.on('mouseenter', '[vibu-tooltip]', function () {
+            let offset = $(this).offset();
+
+            tooltip.removeClass('vibu-hidden').css({
+                left: offset.left + ($(this).outerWidth() / 2),
+                top : offset.top
+            }).text($(this).attr('title'));
+        }).on('mouseleave', '[vibu-tooltip]', function () {
+            tooltip.addClass('vibu-hidden');
         });
     };
 };

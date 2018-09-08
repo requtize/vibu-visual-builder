@@ -123,7 +123,7 @@ vibu.editor = function (selector, options) {
     };
 
     this.addBlock = function (name) {
-        this.trigger('method.add-block', { name: name });
+        this.trigger('entry-method.add-block', { name: name });
     };
 }
 

@@ -2,23 +2,29 @@ vibu.blocks = function (editor) {
     this.editor = editor;
     this.blocks = [];
     this.groups = [];
-    this.addable = null;
+    this.droppable = null;
     this.movable = null;
+    this.repeatable = null;
     this.actionsBoxDisabled = false;
 
     this.init = function () {
         let self = this;
         let body = null;
 
-        this.editor.on('blocks.block', function (data) {
+        this.droppable  = new vibu.blocks._droppable(this.editor);
+        this.movable    = new vibu.blocks._movable(this.editor);
+        this.repeatable = new vibu.blocks._repeatable(this.editor);
+        this.repeatable.init();
+
+        this.editor.on('blocks.block block.update-rerender', function (data) {
             self.parseBlock(data);
         }, -1000);
 
-        this.editor.on('method.add-block', function (data) {
+        this.editor.on('entry-method.add-block', function (data) {
             let block = self.getBlock(data.name);
 
             if(block)
-                self.addable.appendBlock(block);
+                self.droppable.appendBlock(block);
         }, -1000);
 
         this.editor.on('canvas.set-content', function () {
@@ -37,9 +43,6 @@ vibu.blocks = function (editor) {
                     node : $(this)
                 });
             });
-
-            self.bindBlocksPlacement();
-            self.bindBlocksMovable();
         }, -1000);
 
         this.editor.on('blocks.movable-start', function () {
@@ -50,15 +53,10 @@ vibu.blocks = function (editor) {
             body.removeClass('vibu-movable-active');
         });
 
-        this.editor.on('element.action.remove', function (data) {
-            if(confirm('Jesteś pewny, że chcesz to usunąć?'))
-            {
-                data.element.remove();
-                self.editor.selectable.clearSelectedElement();
-            }
-        });
-
         this.editor.on('selectable.selected.update-boundaries', function (data) {
+            if(! data.boundaries)
+                return;
+
             let actions = self.editor.getNode().find('.vibu-element-actions');
 
             actions.css({
@@ -74,10 +72,13 @@ vibu.blocks = function (editor) {
             if(self.actionsBoxDisabled === false)
                 actions.removeClass('vibu-hidden');
 
+            let blockElement = self.editor.doc.findBlockElement(data.element);
+
             // Here anyone can modify actions buttons visibility.
             self.editor.trigger('element.actionsbox.show', {
                 actionsbox: actions,
-                element   : data.element
+                element   : data.element,
+                block     : self.getBlock(blockElement.attr('vibu-block'))
             });
 
             actions.css({
@@ -98,10 +99,11 @@ vibu.blocks = function (editor) {
             });
 
             actions.append('\
-                <div vibu-element-action="move">M</div>\
-                <div vibu-element-action="duplicate">D</div>\
-                <div vibu-element-action="edit">E</div>\
-                <div vibu-element-action="remove">R</div>\
+                <div vibu-element-action="edit-text" vibu-tooltip title="Edytuj tekst"><i class="fas fa-i-cursor"></i></div>\
+                <div vibu-element-action="block-move-down" vibu-tooltip title="Przenieś niżej"><i class="fas fa-angle-down"></i></div>\
+                <div vibu-element-action="block-move-up" vibu-tooltip title="Przenieś wyżej"><i class="fas fa-angle-up"></i></div>\
+                <div vibu-element-action="block-duplicate" vibu-tooltip title="Duplikuj"><i class="fas fa-copy"></i></div>\
+                <div vibu-element-action="block-remove" vibu-tooltip title="Usuń"><i class="fas fa-trash"></i></div>\
             ');
 
             // Here anyone can add and modify any actions buttons.
@@ -119,24 +121,49 @@ vibu.blocks = function (editor) {
                     element: self.editor.selectable.selectedElement
                 });
             });
-        });
+
+            self.droppable.init();
+            //self.movable.init();
+        }, -1000);
 
         this.editor.on('element.actionsbox.show', function (data) {
+            data.actionsbox.find('[vibu-element-action="move"]').hide();
+            data.actionsbox.find('[vibu-element-action="block-remove"]').hide();
+            data.actionsbox.find('[vibu-element-action="block-duplicate"]').hide();
+            data.actionsbox.find('[vibu-element-action="block-move-down"]').hide();
+            data.actionsbox.find('[vibu-element-action="block-move-up"]').hide();
+
             if(data.element.attr('vibu-block'))
             {
                 data.actionsbox.find('[vibu-element-action="move"]').show();
-                data.actionsbox.find('[vibu-element-action="remove"]').show();
-                data.actionsbox.find('[vibu-element-action="duplicate"]').show();
-            }
-            else
-            {
-                data.actionsbox.find('[vibu-element-action="move"]').hide();
-                data.actionsbox.find('[vibu-element-action="remove"]').hide();
-                data.actionsbox.find('[vibu-element-action="duplicate"]').hide();
+                data.actionsbox.find('[vibu-element-action="block-remove"]').show();
+                data.actionsbox.find('[vibu-element-action="block-duplicate"]').show();
+                data.actionsbox.find('[vibu-element-action="block-move-down"]').show();
+                data.actionsbox.find('[vibu-element-action="block-move-up"]').show();
             }
         });
 
-        this.editor.on('element.action.duplicate', function (data) {
+        this.editor.on('element.action.block-move-up', function (data) {
+            let prev = data.element.prev('.vibu-block');
+
+            if(prev)
+            {
+                data.element.insertBefore(prev);
+                self.editor.selectable.updateActiveElement();
+            }
+        });
+
+        this.editor.on('element.action.block-move-down', function (data) {
+            let next = data.element.next('.vibu-block');
+
+            if(next)
+            {
+                data.element.insertAfter(next);
+                self.editor.selectable.updateActiveElement();
+            }
+        });
+
+        this.editor.on('element.action.block-duplicate', function (data) {
             let cloned = data.element.clone(false, false).off();
 
             cloned.insertAfter(data.element);
@@ -145,6 +172,14 @@ vibu.blocks = function (editor) {
                 block: self.getBlock(cloned.attr('vibu-block')),
                 node : cloned
             });
+        });
+
+        this.editor.on('element.action.block-remove', function (data) {
+            if(confirm('Jesteś pewny, że chcesz to usunąć?'))
+            {
+                data.element.remove();
+                self.editor.selectable.clearSelectedElement();
+            }
         });
 
         this.editor.on('element.actionsbox.disable', function () {
@@ -199,6 +234,9 @@ vibu.blocks = function (editor) {
         editables = editables.add(data.node);
 
         editables.each(function () {
+            if($(this).data('vibu.blocks.parse.done'))
+                return;
+
             let element = $(this);
             let field   = element.attr('vibu-field');
             let block   = data.block;
@@ -231,6 +269,7 @@ vibu.blocks = function (editor) {
             block.fields[field] = newEditables;
 
             element.attr('vibu-selectable', true);
+            element.data('vibu.blocks.parse.done', true);
         });
     };
 
@@ -251,7 +290,7 @@ vibu.blocks = function (editor) {
         let frameworks = this.editor.options.frameworks;
 
         let block = factory(url, this.editor);
-        block = $.extend({}, vibu.blocks.block.defaults, block);
+        block = $.extend(true, {}, vibu.blocks.block.defaults, block);
         block.name  = name;
         block.label = block.label ? block.label : block.name;
 
@@ -306,16 +345,6 @@ vibu.blocks = function (editor) {
         this.editor.doc.getBlocks().find('.vibu-accordion').append('<div class="vibu-accordion-item" vibu-accordion="' + group.name + '"><div class="vibu-accordion-label">' + group.label + '</div><div class="vibu-accordion-content"></div></div>');
     };
 
-    this.bindBlocksPlacement = function () {
-        this.addable = new vibu.blocks._addable(this.editor);
-        this.addable.init();
-    };
-
-    this.bindBlocksMovable = function () {
-        this.movable = new vibu.blocks._movable(this.editor);
-        this.movable.init();
-    };
-
     this.getElementEditables = function (element) {
         let blockNode = element.closest('[vibu-block]');
 
@@ -366,7 +395,7 @@ vibu.blocks = function (editor) {
 
 
 
-vibu.blocks._addable = function (editor) {
+vibu.blocks._droppable = function (editor) {
     this.editor = editor;
     this.active = false;
     this.placement = null;
@@ -476,8 +505,10 @@ vibu.blocks._addable = function (editor) {
         this.active = false;
         this.placement.hide();
 
+        let node = null;
+
         if(this.canvasHovered)
-            this.appendBlockAtCurrentPosition(this.block);
+            node = this.appendBlockAtCurrentPosition(this.block);
 
         // Reset placeholder position to the top of canvas.
         this.placeholder.insertBefore(this.editor.doc.getCanvasContent().find('[vibu-block]').first());
@@ -485,6 +516,9 @@ vibu.blocks._addable = function (editor) {
 
         this.editor.selectable.updateActiveElement();
         this.editor.selectable.updateHoveredElement();
+
+        if(node)
+            this.editor.selectable.select(node);
 
         this.block = null;
 
@@ -571,6 +605,8 @@ vibu.blocks._addable = function (editor) {
             block: block,
             node : node
         });
+
+        return node;
     };
 
     this.appendBlock = function (block) {
@@ -603,6 +639,7 @@ vibu.blocks._movable = function (editor) {
     this.placeholder = null;
     this.lastPlaceholderPosition = null;
     this.cursorStartPosition = null;
+    this.scrollStartPosition = null;
     this.blockPositionStart = null;
     this.block = null;
     this.treshold = 5;
@@ -629,10 +666,11 @@ vibu.blocks._movable = function (editor) {
             self.block   = $(this);
 
             self.cursorStartPosition = e.clientY;
+            self.scrollStartPosition = canvas.scrollTop();
 
             self.preventTextSelection(e);
         }).on('mousemove', '[vibu-block]', function (e) {
-            if(self.active === false)
+            if(self.started === false)
                 return true;
 
             let block = $(this);
@@ -665,6 +703,7 @@ vibu.blocks._movable = function (editor) {
             self.block   = null;
 
             self.cursorStartPosition = null;
+            self.scrollStartPosition = null;
         });
 
         $('body').on('mousemove', function (e) {
@@ -743,10 +782,11 @@ vibu.blocks._movable = function (editor) {
     };
 
     this.detectBlockHoverHalf = function (block, event) {
-        let height = block.height();
-        let half   = height / 2;
+        let half = block.height() / 2;
 
-        if(event.offsetY >= 0 && event.offsetY <= half)
+        let position = event.pageY - block.offset().top;
+
+        if(position >= 0 && position <= half)
             return 'top';
         else
             return 'bottom';
@@ -754,6 +794,127 @@ vibu.blocks._movable = function (editor) {
 
     this.preventTextSelection = function (e) {
         e.preventDefault();
+    };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+vibu.blocks._repeatable = function (editor) {
+    this.editor = editor;
+
+    this.init = function () {
+        let self = this;
+
+        this.editor.on('blocks.block', function (data) {
+            if(data.block.repeatable.enabled)
+            {
+                self.createRepeatable(data.block, data.node);
+            }
+        }, -900);
+
+
+        this.editor.on('element.actionsbox.create', function (data) {
+            data.actionsbox.prepend('\
+                <div vibu-element-action="repeatable-move-down" vibu-tooltip title="Przenieś niżej"><i class="fas fa-angle-down"></i></div>\
+                <div vibu-element-action="repeatable-move-up" vibu-tooltip title="Przenieś wyżej"><i class="fas fa-angle-up"></i></div>\
+                <div vibu-element-action="repeatable-move-left" vibu-tooltip title="Przenieś w lewo"><i class="fas fa-angle-left"></i></div>\
+                <div vibu-element-action="repeatable-move-right" vibu-tooltip title="Przenieś w prawo"><i class="fas fa-angle-right"></i></div>\
+            ');
+        });
+
+        this.editor.on('element.actionsbox.show', function (data) {
+            data.actionsbox.find('[vibu-element-action="repeatable-move-down"]').hide();
+            data.actionsbox.find('[vibu-element-action="repeatable-move-up"]').hide();
+            data.actionsbox.find('[vibu-element-action="repeatable-move-right"]').hide();
+            data.actionsbox.find('[vibu-element-action="repeatable-move-left"]').hide();
+
+            if(data.element.attr('vibu-repeated'))
+            {
+                if(data.block.repeatable.axis == 'x')
+                {
+                    data.actionsbox.find('[vibu-element-action="repeatable-move-right"]').show();
+                    data.actionsbox.find('[vibu-element-action="repeatable-move-left"]').show();
+                }
+                else
+                {
+                    data.actionsbox.find('[vibu-element-action="repeatable-move-down"]').show();
+                    data.actionsbox.find('[vibu-element-action="repeatable-move-up"]').show();
+                }
+            }
+        });
+
+        this.editor.on('element.action.repeatable-move-left element.action.repeatable-move-up', function (data) {
+            let prev = data.element.prev('[vibu-repeated]');
+
+            if(prev)
+            {
+                data.element.insertBefore(prev);
+                self.editor.selectable.updateActiveElement();
+            }
+        });
+
+        this.editor.on('element.action.repeatable-move-right element.action.repeatable-move-down', function (data) {
+            let next = data.element.next('[vibu-repeated]');
+
+            if(next)
+            {
+                data.element.insertAfter(next);
+                self.editor.selectable.updateActiveElement();
+            }
+        });
+    };
+
+    this.createRepeatable = function (block, node) {
+        let self = this;
+
+        let container = node.find('[vibu-repeatable]').first();
+        let button    = $(block.repeatable.button);
+        let label     = 'Dodaj element';
+
+        if(block.repeatable.label)
+            label = label + ': <b>' + block.repeatable.label + '</b>';
+
+        button
+            .addClass('vibu-repeatable-button')
+            .append('<div class="vibu-repeatable-button-label"><div><div>' + label + '</div></div></div>');
+
+        container.find('> *')
+            .attr('vibu-selectable', true)
+            .attr('vibu-repeated', true);
+
+        container.append(button);
+
+        button.addClass('vibu-dynamic-element').click(function (e) {
+            let element = $(block.repeatable.pattern);
+
+            element
+                .attr('vibu-selectable', true)
+                .attr('vibu-repeated', true)
+                .insertBefore(button);
+
+            self.update(block, node, element);
+            e.stopPropagation();
+        });
+    };
+
+    this.update = function (block, node, element) {
+        this.editor.selectable.updateActiveElement();
+        this.editor.selectable.updateHoveredElement();
+        this.editor.trigger('block.update-rerender', {
+            block: block,
+            node : node
+        });
+
+        this.editor.selectable.select(element);
     };
 };
 
@@ -819,6 +980,13 @@ vibu.blocks.block.defaults = {
     html    : null,
     wrapHtmlDefault: true,
     frameworks: [],
+    repeatable: {
+        enabled: false,
+        pattern: null,
+        button: null,
+        label: null,
+        axis: null
+    },
     fieldExists: function (name) {
         return this.fields[name] ? true : false;
     },
@@ -919,7 +1087,6 @@ vibu.blocks.block('core/text', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            block: [ 'margin' ],
             text: [ 'wysiwyg', 'margin' ]
         }
     };
@@ -940,7 +1107,6 @@ vibu.blocks.block('core/text/col-6-6', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            block: [ 'margin' ],
             text1: [ 'wysiwyg', 'margin' ],
             text2: [ 'wysiwyg', 'margin' ],
         }
@@ -965,7 +1131,6 @@ vibu.blocks.block('core/text/col-4-4-4', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            block: [ 'margin' ],
             text1: [ 'wysiwyg', 'margin' ],
             text2: [ 'wysiwyg', 'margin' ],
             text3: [ 'wysiwyg', 'margin' ],
@@ -994,7 +1159,6 @@ vibu.blocks.block('core/text/col-3-3-3-3', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            block: [ 'margin' ],
             text1: [ 'wysiwyg', 'margin' ],
             text2: [ 'wysiwyg', 'margin' ],
             text3: [ 'wysiwyg', 'margin' ],
@@ -1014,7 +1178,6 @@ vibu.blocks.block('core/image', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            block: [ 'margin' ],
             image: [ 'image', 'margin', 'alt', 'title' ]
         }
     };
@@ -1034,7 +1197,6 @@ vibu.blocks.block('core/image/col-6-6', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            block: [ 'margin' ],
             image1: [ 'image', 'margin', 'alt', 'title' ],
             image2: [ 'image', 'margin', 'alt', 'title' ],
         }
@@ -1058,7 +1220,6 @@ vibu.blocks.block('core/image/col-4-4-4', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            block: [ 'margin' ],
             image1: [ 'image', 'margin', 'alt', 'title' ],
             image2: [ 'image', 'margin', 'alt', 'title' ],
             image3: [ 'image', 'margin', 'alt', 'title' ],
@@ -1072,40 +1233,97 @@ vibu.blocks.block('core/faq', function (url, editor) {
         label: 'FAQ',
         icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/headline-no1.jpg',
         html: '<div class="accordion" id="accordionExample" vibu-repeatable>\
-            <div class="card">\
+            <div class="card mb-2">\
                 <div class="card-header py-1 px-1" id="headingOne">\
                     <h5 class="mb-0">\
-                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"  vibu-field="title">\
+                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" vibu-field="title">\
                             Collapsible Group Item #1\
                         </button>\
                     </h5>\
                 </div>\
-                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">\
-                    <div class="card-body">\
-                        <p class="mb-0" vibu-field="content">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven\'t heard of them accusamus labore sustainable VHS.</p>\
-                    </div>\
-                </div>\
-            </div>\
-            <div class="card" vibu-repeatable-pattern>\
-                <div class="card-header py-1 px-1" id="headingOne">\
-                    <h5 class="mb-0">\
-                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"  vibu-field="title">\
-                            Collapsible Group Item #1\
-                        </button>\
-                    </h5>\
-                </div>\
-                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">\
+                <div id="collapseOne" class="collapse show" data-parent="#accordionExample">\
                     <div class="card-body">\
                         <p class="mb-0" vibu-field="content">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven\'t heard of them accusamus labore sustainable VHS.</p>\
                     </div>\
                 </div>\
             </div>\
         </div>',
+        repeatable: {
+            enabled: true,
+            pattern: '<div class="card mb-2">\
+                <div class="card-header py-1 px-1" id="headingOne">\
+                    <h5 class="mb-0">\
+                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" vibu-field="title">\
+                            Collapsible Group Item #1\
+                        </button>\
+                    </h5>\
+                </div>\
+                <div id="collapseOne" class="collapse show" data-parent="#accordionExample">\
+                    <div class="card-body">\
+                        <p class="mb-0" vibu-field="content">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven\'t heard of them accusamus labore sustainable VHS.</p>\
+                    </div>\
+                </div>\
+            </div>',
+            button: '<div class="card"><div class="card-body"></div></div>',
+            label: 'FAQ'
+        },
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            block: [ 'margin' ],
             title: [ 'text' ],
             content: [ 'wysiwyg' ],
+        }
+    };
+});
+
+vibu.blocks.block('core/gallery', function (url, editor) {
+    return {
+        group: 'galleries',
+        label: 'Galeria zdjęć',
+        icon: 'http://localhost/vibu-visual-builder/dist/test-block-images/headline-no1.jpg',
+        html: '<div class="row" vibu-repeatable>\
+            <div class="col-6 col-xl-3 col-lg-3 col-md-3 col-sm-4 text-center mb-3" vibu-field="link">\
+                <a href="http://via.placeholder.com/300x100&text=VIBU" class="d-block">\
+                    <img src="http://via.placeholder.com/300x100&text=VIBU" />\
+                </a>\
+            </div>\
+        </div>',
+        repeatable: {
+            enabled: true,
+            pattern: '<div class="col-6 col-xl-3 col-lg-3 col-md-3 col-sm-4 text-center mb-3" vibu-field="link">\
+                <a href="http://via.placeholder.com/300x100&text=VIBU" class="d-block">\
+                    <img src="http://via.placeholder.com/300x100&text=VIBU" />\
+                </a>\
+            </div>',
+            button: '<div class="col-6 col-xl-3 col-lg-3 col-md-3 col-sm-4 text-center mb-3"></div>',
+            label: 'Zdjęcie galerii',
+            axis: 'x'
+        },
+        frameworks: [ 'bootstrap-4' ],
+        fields: {
+            link: [ 'gallery-link' ],
+        }
+    };
+});
+vibu.styles.control('gallery-link', function () {
+    return {
+        html: '<div class="vibu-form-group">\
+    <label class="vibu-label">Zdjęcie</label>\
+    <div class="vibu-input-group">\
+        <input type="text" class="vibu-form-control" vibu-control />\
+        <div class="vibu-input-group-append">\
+            <button class="vibu-btn vibu-btn-icon-only" type="button"><i class="far fa-folder-open"></i></button>\
+        </div>\
+    </div>\
+</div>\
+',
+        set: function (control, element) {
+            let val = control.find('[vibu-control]').val();
+
+            element.find('img').attr('src', val);
+            element.find('a').attr('href', val);
+        },
+        get: function (control, element) {
+            control.find('[vibu-control]').val(element.find('img').attr('src'));
         }
     };
 });

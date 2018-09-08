@@ -7,40 +7,17 @@ vibu.editorText = function (editor) {
     this.init = function () {
         let self = this;
 
-        this.editor.on('blocks.block', function (params) {
-            let textFields = params.block.getFieldsByEditable('text');
-
-            for(let i in textFields)
-            {
-                params.node.find('[vibu-field=' + i + ']').each(function () {
-                    self.createEditor($(this), 'text');
-                });
-            }
-
-            let textInlineFields = params.block.getFieldsByEditable('text-inline');
-
-            for(let i in textInlineFields)
-            {
-                params.node.find('[vibu-field=' + i + ']').each(function () {
-                    self.createEditor($(this), 'text-inline');
-                });
-            }
-
-            let wysiwygFields = params.block.getFieldsByEditable('wysiwyg');
-
-            for(let i in wysiwygFields)
-            {
-                params.node.find('[vibu-field=' + i + ']').each(function () {
-                    self.createEditor($(this), 'wysiwyg');
-                });
-            }
+        this.editor.on('blocks.block block.update-rerender', function (data) {
+            self.createEditors(data, 'text');
+            self.createEditors(data, 'text-inline');
+            self.createEditors(data, 'wysiwyg');
         });
 
         this.editor.on('canvas.append-content', function () {
             //self.editor.doc.getCanvasContent().find('.')
         });
 
-        this.editor.on('element.action.edit', function (data) {
+        this.editor.on('element.action.edit-text', function (data) {
             let editor = self.getAttachedEditor(data.element);
 
             if(editor)
@@ -49,15 +26,30 @@ vibu.editorText = function (editor) {
 
         this.editor.on('element.actionsbox.show', function (data) {
             if(self.hasEditor(data.element))
-                data.actionsbox.find('[vibu-element-action="edit"]').show();
+                data.actionsbox.find('[vibu-element-action="edit-text"]').show();
             else
-                data.actionsbox.find('[vibu-element-action="edit"]').hide();
+                data.actionsbox.find('[vibu-element-action="edit-text"]').hide();
         });
     };
 
     this.load = function (onLoad) {};
 
+    this.createEditors = function (data, mode) {
+        let self   = this;
+        let fields = data.block.getFieldsByEditable(mode);
+
+        for(let i in fields)
+        {
+            data.node.find('[vibu-field=' + i + ']').each(function () {
+                self.createEditor($(this), mode);
+            });
+        }
+    };
+
     this.createEditor = function (element, mode) {
+        if(element.attr('vibu.texteditor.created'))
+            return;
+
         let self = this;
 
         let editor = new vibu.editorText.Editor(this.editor, element, mode);
@@ -69,11 +61,13 @@ vibu.editorText = function (editor) {
         });
 
         this.editors.push(editor);
+
+        element.attr('vibu.texteditor.created', true);
     };
 
     this.enableEditor = function (editor) {
         this.editor.trigger('element.actionsbox.disable');
-        this.editor.selectable.disable();
+        this.editor.selectable.blockCurrentState();
         // @todo - Add disable/enable movable and droppable
 
         editor.enable().focus();
@@ -86,7 +80,7 @@ vibu.editorText = function (editor) {
 
     this.disableEditor = function () {
         this.editor.trigger('element.actionsbox.enable');
-        this.editor.selectable.enable();
+        this.editor.selectable.unblockCurrentState();
         // @todo - Add disable/enable movable and droppable
 
         this.enabledEditor
@@ -182,15 +176,18 @@ vibu.editorText.Editor = function (editor, element, mode) {
         });
 
         this.toolbar = $('<div class="vibu-texteditor-toolbar vibu-hidden">\
-            <div vibu-texteditor-action="save">OK</div>\
+            <div class="vibu-texteditor-control vibu-texteditor-control-save" vibu-texteditor-action="save" vibu-tooltip title="Zakończ edycję tekstu"><i class="fas fa-check"></i></div>\
         </div>');
 
         if(this.mode != 'text')
         {
             this.toolbar.prepend('\
-                <div vibu-texteditor-action="bold">B</div>\
-                <div vibu-texteditor-action="italic">I</div>\
-                <div vibu-texteditor-action="strike">S</div>\
+                <div vibu-texteditor-action="bold" vibu-tooltip title="Pogrubienie"><i class="fas fa-bold"></i></div>\
+                <div vibu-texteditor-action="italic" vibu-tooltip title="Kursywa"><i class="fas fa-italic"></i></div>\
+                <div vibu-texteditor-action="strike" vibu-tooltip title="Przekreślenie"><i class="fas fa-strikethrough"></i></div>\
+                <div vibu-texteditor-action="underline" vibu-tooltip title="Podkreślenie"><i class="fas fa-underline"></i></div>\
+                <div vibu-texteditor-action="link" vibu-tooltip title="Wstaw/edytuj link"><i class="fas fa-link"></i></div>\
+                <div vibu-texteditor-action="unlink" vibu-tooltip title="Usuń link"><i class="fas fa-unlink"></i></div>\
             ');
         }
 
@@ -210,6 +207,9 @@ vibu.editorText.Editor = function (editor, element, mode) {
                     break;
                 case 'strike':
                     elementDocument.execCommand('strikeThrough', false, null);
+                    break;
+                case 'underline':
+                    elementDocument.execCommand('underline', false, null);
                     break;
                 case 'save':
                     self.editor.editorText.disableEditor();

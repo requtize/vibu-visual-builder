@@ -7,19 +7,19 @@
 
         <title></title>
 
-        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
 
         <style>
             .vibu-container-fixed {position:fixed;left:0;top:0;right:0;bottom:0;z-index:100}
             .vibu-container-inplace {position:relative;z-index:100}
-            .vibu-visual-builder,
-            .vibu-visual-builder *,
-            .vibu-visual-builder *:after,
-            .vibu-visual-builder *:before {box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;}
-            .vibu-visual-builder {font-size:14px;line-height:1.2;font-family:Arial,Tahoma,Verdana;color:#000;}
-            .vibu-visual-builder a,
-            .vibu-visual-builder a:focus,
-            .vibu-visual-builder a:hover {text-decoration:none}
+            .vibu-container,
+            .vibu-container *,
+            .vibu-container *:after,
+            .vibu-container *:before {box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;}
+            .vibu-container {font-size:14px;line-height:1.2;font-family:Arial,Tahoma,Verdana;color:#000;}
+            .vibu-container a,
+            .vibu-container a:focus,
+            .vibu-container a:hover {text-decoration:none}
             .vibu-visual-builder .vibu-sidebar-inner {position:absolute;bottom:0;top:0;left:0;right:0;overflow:auto;}
             .vibu-visual-builder .vibu-sidebar {position:absolute;z-index:10;width:280px;top:0;bottom:0;}
             .vibu-visual-builder .vibu-sidebar-blocks {left:0;border-right:1px solid #ddd;}
@@ -60,16 +60,18 @@
             .vibu-visual-builder .vibu-element-boundaries.vibu-element-boundaries-hover:hover {cursor:pointer;}
             .vibu-visual-builder .vibu-element-boundaries.vibu-element-focused:before {background-color:transparent;}
 
-            .vibu-element-actions {position:absolute;top:0;z-index:1000;font-size:0;height:20px;transform:translate(0,-100%);white-space:nowrap;overflow:hidden;border-radius:3px 3px 0 0}
+            .vibu-element-actions {position:absolute;top:0;z-index:1000;font-size:0;height:20px;transform:translate(0,-100%);white-space:nowrap;border-radius:3px 3px 0 0;overflow:hidden;}
             .vibu-element-actions > div {background-color:#0088cc;display:inline-block;padding:0 8px;height:20px;line-height:20px;color:#fff;font-size:12px;border-left:1px solid #fff;transition:.12s all}
-            .vibu-element-actions > div:first-child {border-left:none}
+            .vibu-element-actions > div:first-child {border-left:none;}
             .vibu-element-actions > div:hover {cursor:pointer;background-color:#0069d9;}
             .vibu-element-actions.vibu-hidden {left:0 !important;top:-10000px !important;display:block !important;}
 
-            .vibu-texteditor-toolbar {position:absolute;top:0;z-index:10000;font-size:0;height:20px;transform:translateY(-100%);white-space:nowrap;overflow:hidden;border-radius:3px 3px 0 0;background-color:#0088cc;}
+            .vibu-texteditor-toolbar {position:absolute;top:0;z-index:10000;font-size:0;height:20px;transform:translateY(-100%);white-space:nowrap;}
             .vibu-texteditor-toolbar > div {background-color:#0088cc;display:inline-block;padding:0 8px;height:20px;line-height:20px;color:#fff;font-size:12px;border-left:1px solid #fff;transition:.12s all}
-            .vibu-texteditor-toolbar > div:first-child {border-left:none}
+            .vibu-texteditor-toolbar > div:first-child {border-left:none;border-top-left-radius:3px}
+            .vibu-texteditor-toolbar > div:last-child {border-top-right-radius:3px}
             .vibu-texteditor-toolbar > div:hover {cursor:pointer;background-color:#0069d9;}
+            .vibu-texteditor-toolbar .vibu-texteditor-control-save {background-color:green;}
 
             .vibu-editor-placement-inline {max-width:100%;width:800px;margin:100px auto;}
 
@@ -89,6 +91,8 @@
 
             .vibu-placement-tooltip {display:none;position:fixed;z-index:100;left:20px;top:20px;padding:7px 12px;border-radius:3px;box-shadow:0 0 5px rgba(0,0,0,.3);background-color:rgba(255,255,255,.7);transform:translate(10px,10px);font-size:11px;font-style:italic;width:200px;pointer-events:none}
             .vibu-placement-tooltip span {font-weight:bold;font-style:normal}
+
+            .vibu-tooltip {position:fixed;z-index:99999;display:block;padding:4px 7px;background-color:#000;border-radius:4px;color:#fff;transform:translate(-50%,-110%);font-size:12px;}
 
 
 
@@ -359,6 +363,7 @@
                     setup: function (editor) {
                         editor.on('editor.created', function () {
                             editor.addBlock('core/faq');
+                            editor.addBlock('core/gallery');
                             editor.addBlock('core/text');
                             editor.addBlock('core/text/col-6-6');
                             editor.addBlock('core/text/col-4-4-4');

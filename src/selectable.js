@@ -8,6 +8,7 @@ vibu.selectable = function (editor) {
     this.hoveredLayer  = null;
 
     this.disabled = false;
+    this.blocked = false;
 
     this.init = function () {
         let self = this;
@@ -16,15 +17,20 @@ vibu.selectable = function (editor) {
             self.initAfterEditorReady();
         }, 100);
 
-        this.editor.on('blocks.block', function (data) {
+        this.editor.on('blocks.block block.update-rerender', function (data) {
             let nodes = data.node.find('[vibu-selectable]');
 
             if(data.node.attr('vibu-selectable'))
                 nodes = nodes.add(data.node);
 
             nodes.each(function () {
+                if($(this).data('vibu.selectable.done'))
+                    return;
+
                 self.bindElementHoverEvents($(this));
                 self.bindElementClickEvents($(this));
+
+                $(this).data('vibu.selectable.done', true);
             });
         }, 100);
 
@@ -105,9 +111,6 @@ vibu.selectable = function (editor) {
         this.hoveredLayer  = this.editor.getNode().find('.vibu-element-boundaries-hover');
 
         $(this.editor.doc.getCanvasWindow()).on('scroll resize', function () {
-            if(self.disabled)
-                return;
-
             if(self.selectedElement)
                 self.editor.trigger('selectable.selected.update-boundaries', {
                     boundaries: self.editor.doc.getElementBoundaries(self.selectedElement)
@@ -120,10 +123,16 @@ vibu.selectable = function (editor) {
         });
 
         this.editor.canvas.getBody().click(function () {
+            if(self.disabled || self.blocked)
+                return;
+
             self.editor.trigger('selectable.selected.none');
         });
 
         this.editor.doc.getCanvas().closest('.vibu-canvas').click(function () {
+            if(self.disabled || self.blocked)
+                return;
+
             self.editor.trigger('selectable.selected.none');
         });
     };
@@ -134,7 +143,7 @@ vibu.selectable = function (editor) {
         let self = this;
 
         element.hover(function () {
-            if(self.disabled)
+            if(self.disabled || self.blocked)
                 return;
 
             self.hover(element);
@@ -147,7 +156,7 @@ vibu.selectable = function (editor) {
         let self = this;
 
         element.click(function (DOMEvent) {
-            if(self.disabled)
+            if(self.disabled || self.blocked)
                 return;
 
             if(! self.selectedElement || self.selectedElement.is(element) === false)
@@ -170,6 +179,8 @@ vibu.selectable = function (editor) {
             element   : element,
             boundaries: this.editor.doc.getElementBoundaries(element)
         });
+
+        return this;
     };
 
     this.hover = function (element) {
@@ -177,6 +188,8 @@ vibu.selectable = function (editor) {
             element   : element,
             boundaries: this.editor.doc.getElementBoundaries(element)
         });
+
+        return this;
     };
 
     this.updateActiveElement = function () {
@@ -186,6 +199,8 @@ vibu.selectable = function (editor) {
         this.editor.trigger('selectable.selected.update-boundaries', {
             boundaries: this.editor.doc.getElementBoundaries(this.selectedElement)
         });
+
+        return this;
     };
 
     this.updateHoveredElement = function () {
@@ -195,21 +210,46 @@ vibu.selectable = function (editor) {
         this.editor.trigger('selectable.hovered.update-boundaries', {
             boundaries: this.editor.doc.getElementBoundaries(this.hoveredElement)
         });
+
+        return this;
     };
 
     this.clearSelectedElement = function () {
         this.editor.trigger('selectable.selected.none');
         this.selectedElement = null;
+
+        return this;
+    };
+
+    this.hideSelectedBoundaries = function () {
+
+    };
+
+    this.hideHoveredBoundaries = function () {
+
     };
 
     this.disable = function () {
-        this.editor.trigger('selectable.hovered.out');
-        this.editor.trigger('selectable.selected.none');
-
         this.disabled = true;
+
+        return this;
     };
 
     this.enable = function () {
         this.disabled = false;
+
+        return this;
+    };
+
+    this.blockCurrentState = function () {
+        this.blocked = true;
+
+        return this;
+    };
+
+    this.unblockCurrentState = function () {
+        this.blocked = false;
+
+        return this;
     };
 };

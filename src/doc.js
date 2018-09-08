@@ -1,12 +1,12 @@
 vibu.doc = function (editor) {
     this.editor = editor;
 
-    this.findAllVibuElements = function () {
-        return this.editor.getNode().find('[data-vibu]');
+    this.findSelectableElement = function (element) {
+        return element.attr('vibu-selectable') ? element : element.closest('[vibu-selectable]');
     };
 
-    this.findSelectableElement = function (element) {
-        return element.closest('[vibu-selectable]');
+    this.findBlockElement = function (element) {
+        return element.attr('vibu-block') ? element : element.closest('[vibu-block]');
     };
 
     this.getElementBoundaries = function (element) {
