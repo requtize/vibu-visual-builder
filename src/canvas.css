@@ -12,8 +12,14 @@ body.vibu-movable-active .vibu-movable-placeholder:hover {cursor:move !important
 [contenteditable]:focus {outline:none !important}
 body .vibu-block-movable {position:absolute;z-index:1000;left:0;top:0;right:0;background-color:#fff !important;pointer-events:none;}
 
-.vibu-repeatable-button {position:relative;border-radius:3px;overflow:hidden;min-height:50px;}
+body/*.vibu-show-blocks-guides*/ .vibu-block {position:relative;z-index:1;padding:20px 0;}
+body/*.vibu-show-blocks-guides*/ .vibu-block:before {position:absolute;left:0;top:0;z-index:100;display:block;padding:4px 9px;font-size:11px;color:#000;background-color:#fff;opacity:.7;content:attr(vibu-block);pointer-events:none}
+body/*.vibu-show-blocks-guides*/ .vibu-block:after {content:"";display:block;position:absolute;left:0;top:0;right:0;bottom:0;z-index:200;pointer-events:none;border:1px dashed #ddd;}
+
+.vibu-repeatable-button {display:none;position:relative;border-radius:3px;overflow:hidden;min-height:50px;}
 .vibu-repeatable-button-label {position:absolute;left:0;top:0;right:0;bottom:0;z-index:10;background-color:#fff;border:1px solid #ddd;border-radius:3px;transition:.12s all}
 .vibu-repeatable-button-label:hover {cursor:pointer;border-color:#0088cc;background-color:rgba(0,136,204,.2)}
 .vibu-repeatable-button-label > div {display:table;width:100%;height:100%}
 .vibu-repeatable-button-label > div > div {display:table-cell;vertical-align:middle;text-align:center;font-size:14px;color:#000;}
+
+body/*.vibu-show-blocks-guides*/ .vibu-repeatable-button {display:block;}

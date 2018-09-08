@@ -63,11 +63,18 @@ vibu.ui = function (editor) {
 
         node.on('mouseenter', '[vibu-tooltip]', function () {
             let offset = $(this).offset();
+            let title  = $(this).attr('title');
+
+            if(! title)
+                title = $(this).attr('data-title');
+
+            $(this).attr('data-title', title);
+            $(this).attr('title', '');
 
             tooltip.removeClass('vibu-hidden').css({
                 left: offset.left + ($(this).outerWidth() / 2),
                 top : offset.top
-            }).text($(this).attr('title'));
+            }).text(title);
         }).on('mouseleave', '[vibu-tooltip]', function () {
             tooltip.addClass('vibu-hidden');
         });

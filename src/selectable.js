@@ -221,14 +221,6 @@ vibu.selectable = function (editor) {
         return this;
     };
 
-    this.hideSelectedBoundaries = function () {
-
-    };
-
-    this.hideHoveredBoundaries = function () {
-
-    };
-
     this.disable = function () {
         this.disabled = true;
 

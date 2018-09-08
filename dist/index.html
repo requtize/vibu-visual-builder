@@ -92,7 +92,8 @@
             .vibu-placement-tooltip {display:none;position:fixed;z-index:100;left:20px;top:20px;padding:7px 12px;border-radius:3px;box-shadow:0 0 5px rgba(0,0,0,.3);background-color:rgba(255,255,255,.7);transform:translate(10px,10px);font-size:11px;font-style:italic;width:200px;pointer-events:none}
             .vibu-placement-tooltip span {font-weight:bold;font-style:normal}
 
-            .vibu-tooltip {position:fixed;z-index:99999;display:block;padding:4px 7px;background-color:#000;border-radius:4px;color:#fff;transform:translate(-50%,-110%);font-size:12px;}
+            .vibu-tooltip {position:fixed;z-index:99999;display:block;padding:4px 7px;background-color:#000;border-radius:4px;color:#fff;transform:translate(-50%,33px);font-size:12px;}
+            .vibu-tooltip:before {content:"";display:block;position:absolute;left:50%;top:0;transform:translate(-50%,-4px);width:0;height:0;border-style:solid;border-width:0 3px 4px 3px;;border-color:transparent transparent #000000 transparent;}
 
 
 
@@ -100,7 +101,7 @@
             .vibu-label {margin-bottom:5px;font-size:12px;}
 
             .vibu-btn,
-            .vibu-form-control {margin: 0;font-family: inherit;font-size: inherit;line-height: inherit;overflow: visible;}
+            .vibu-form-control {margin:0;font-family: inherit;font-size: inherit;line-height: inherit;overflow: visible;}
 
             .vibu-btn {display: inline-block;
                 font-weight: 400;

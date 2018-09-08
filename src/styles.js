@@ -42,10 +42,10 @@ vibu.styles = function (editor) {
 
     this.loadControl = function (name, factory, onLoad) {
         let self = this;
-        let url = 'http://localhost/vibu-visual-builder/src';
+        let url  = this.editor.getBasepath();
 
         let control = factory(url, this.editor);
-        control = $.extend({}, vibu.styles.control.defaults, control);
+        control = $.extend(true, {}, vibu.styles.control.defaults, control);
 
         let sidebar = this.editor.doc.getStyles();
 

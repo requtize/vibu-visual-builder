@@ -165,6 +165,7 @@ vibu.blocks = function (editor) {
 
         this.editor.on('element.action.block-duplicate', function (data) {
             let cloned = data.element.clone(false, false).off();
+            cloned.find('.vibu-dynamic-element').remove();
 
             cloned.insertAfter(data.element);
 
@@ -241,18 +242,17 @@ vibu.blocks = function (editor) {
             let field   = element.attr('vibu-field');
             let block   = data.block;
 
-            let editables = block.getFieldEditables(field);
-
-            if(! editables)
-                return;
-
+            let editables    = block.getFieldEditables(field);
             let newEditables = [];
 
-            for(let i = 0; i < editables.length; i++)
+            if(editables)
             {
-                if(styles.controlExists(editables[i]))
+                for(let i = 0; i < editables.length; i++)
                 {
-                    newEditables.push(editables[i]);
+                    if(styles.controlExists(editables[i]))
+                    {
+                        newEditables.push(editables[i]);
+                    }
                 }
             }
 
@@ -261,6 +261,8 @@ vibu.blocks = function (editor) {
             {
                 newEditables.push('container');
                 newEditables.push('block');
+                newEditables.push('margin');
+                newEditables.push('padding');
             }
 
             if(newEditables.length === 0)
@@ -495,6 +497,7 @@ vibu.blocks._droppable = function (editor) {
         this.active = true;
         this.placement.show();
 
+        this.editor.selectable.clearSelectedElement();
         this.editor.selectable.disable();
     };
 
@@ -828,7 +831,16 @@ vibu.blocks._repeatable = function (editor) {
                 <div vibu-element-action="repeatable-move-up" vibu-tooltip title="Przenieś wyżej"><i class="fas fa-angle-up"></i></div>\
                 <div vibu-element-action="repeatable-move-left" vibu-tooltip title="Przenieś w lewo"><i class="fas fa-angle-left"></i></div>\
                 <div vibu-element-action="repeatable-move-right" vibu-tooltip title="Przenieś w prawo"><i class="fas fa-angle-right"></i></div>\
+                <div vibu-element-action="repeatable-remove" vibu-tooltip title="Usuń"><i class="fas fa-trash"></i></div>\
             ');
+        });
+
+        this.editor.on('element.action.repeatable-remove', function (data) {
+            if(confirm('Jesteś pewny, że chcesz to usunąć?'))
+            {
+                data.element.remove();
+                self.editor.selectable.clearSelectedElement();
+            }
         });
 
         this.editor.on('element.actionsbox.show', function (data) {
@@ -836,9 +848,13 @@ vibu.blocks._repeatable = function (editor) {
             data.actionsbox.find('[vibu-element-action="repeatable-move-up"]').hide();
             data.actionsbox.find('[vibu-element-action="repeatable-move-right"]').hide();
             data.actionsbox.find('[vibu-element-action="repeatable-move-left"]').hide();
+            data.actionsbox.find('[vibu-element-action="repeatable-remove"]').hide();
 
             if(data.element.attr('vibu-repeated'))
             {
+                data.actionsbox.find('[vibu-element-action="repeatable-remove"]').show();
+                data.actionsbox.find('[vibu-element-action="repeatable-duplicate"]').show();
+
                 if(data.block.repeatable.axis == 'x')
                 {
                     data.actionsbox.find('[vibu-element-action="repeatable-move-right"]').show();
@@ -894,6 +910,9 @@ vibu.blocks._repeatable = function (editor) {
         container.append(button);
 
         button.addClass('vibu-dynamic-element').click(function (e) {
+            if(self.editor.selectable.blocked)
+                return;
+
             let element = $(block.repeatable.pattern);
 
             element
@@ -1087,7 +1106,7 @@ vibu.blocks.block('core/text', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            text: [ 'wysiwyg', 'margin' ]
+            text: [ 'wysiwyg' ]
         }
     };
 });
@@ -1107,8 +1126,8 @@ vibu.blocks.block('core/text/col-6-6', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            text1: [ 'wysiwyg', 'margin' ],
-            text2: [ 'wysiwyg', 'margin' ],
+            text1: [ 'wysiwyg' ],
+            text2: [ 'wysiwyg' ],
         }
     };
 });
@@ -1131,9 +1150,9 @@ vibu.blocks.block('core/text/col-4-4-4', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            text1: [ 'wysiwyg', 'margin' ],
-            text2: [ 'wysiwyg', 'margin' ],
-            text3: [ 'wysiwyg', 'margin' ],
+            text1: [ 'wysiwyg' ],
+            text2: [ 'wysiwyg' ],
+            text3: [ 'wysiwyg' ],
         }
     };
 });
@@ -1159,10 +1178,10 @@ vibu.blocks.block('core/text/col-3-3-3-3', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            text1: [ 'wysiwyg', 'margin' ],
-            text2: [ 'wysiwyg', 'margin' ],
-            text3: [ 'wysiwyg', 'margin' ],
-            text4: [ 'wysiwyg', 'margin' ],
+            text1: [ 'wysiwyg' ],
+            text2: [ 'wysiwyg' ],
+            text3: [ 'wysiwyg' ],
+            text4: [ 'wysiwyg' ],
         }
     };
 });
@@ -1178,7 +1197,7 @@ vibu.blocks.block('core/image', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            image: [ 'image', 'margin', 'alt', 'title' ]
+            image: [ 'image', 'alt', 'title' ]
         }
     };
 });
@@ -1197,8 +1216,8 @@ vibu.blocks.block('core/image/col-6-6', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            image1: [ 'image', 'margin', 'alt', 'title' ],
-            image2: [ 'image', 'margin', 'alt', 'title' ],
+            image1: [ 'image', 'alt', 'title' ],
+            image2: [ 'image', 'alt', 'title' ],
         }
     };
 });
@@ -1220,9 +1239,9 @@ vibu.blocks.block('core/image/col-4-4-4', function (url, editor) {
         </div>',
         frameworks: [ 'bootstrap-4' ],
         fields: {
-            image1: [ 'image', 'margin', 'alt', 'title' ],
-            image2: [ 'image', 'margin', 'alt', 'title' ],
-            image3: [ 'image', 'margin', 'alt', 'title' ],
+            image1: [ 'image', 'alt', 'title' ],
+            image2: [ 'image', 'alt', 'title' ],
+            image3: [ 'image', 'alt', 'title' ],
         }
     };
 });
@@ -1264,7 +1283,7 @@ vibu.blocks.block('core/faq', function (url, editor) {
                     </div>\
                 </div>\
             </div>',
-            button: '<div class="card"><div class="card-body"></div></div>',
+            button: '<div class="card mb-2"><div class="card-body"></div></div>',
             label: 'FAQ'
         },
         frameworks: [ 'bootstrap-4' ],
